@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+*.local
+
+# Environment variables (虽然Firebase配置可以公开，但保险起见)
+.env
+.env.local
+.env.*.local
+
+# Claude Code directory (开发文档和笔记，不需要上传)
+.claude/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS files
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Chrome Extension Development
+*.crx
+*.pem
+.web-extension-id
