@@ -11,7 +11,14 @@ import type {
   LinkedInExperienceStructured,
   LinkedInHeadlineStructured,
   LinkedInAboutStructured,
-  LinkedInSkillsStructured
+  LinkedInSkillsStructured,
+  LinkedInEducationStructured,
+  LinkedInCertificationStructured,
+  LinkedInProjectStructured,
+  LinkedInPublicationStructured,
+  LinkedInAwardStructured,
+  LinkedInVolunteerStructured,
+  LinkedInRecommendationStructured
 } from '../types';
 
 interface OptimizationResultProps {
@@ -202,6 +209,364 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
               </div>
             </div>
           ))}
+        </div>
+      );
+
+    case 'education':
+      const educationData = data as LinkedInEducationStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">🎓</span>
+              优化后的教育经历
+            </h3>
+          </div>
+
+          <StructuredField
+            label="学位 (Degree)"
+            value={educationData.degree}
+            maxLength={100}
+            icon="📚"
+          />
+
+          <StructuredField
+            label="学校 (School)"
+            value={educationData.school}
+            maxLength={100}
+            icon="🏫"
+          />
+
+          {educationData.fieldOfStudy && (
+            <StructuredField
+              label="专业领域 (Field of Study)"
+              value={educationData.fieldOfStudy}
+              icon="🔬"
+            />
+          )}
+
+          {educationData.grade && (
+            <StructuredField
+              label="成绩 (Grade)"
+              value={educationData.grade}
+              icon="⭐"
+            />
+          )}
+
+          <StructuredField
+            label="亮点 (Highlights)"
+            value={educationData.highlights}
+            maxLength={600}
+            icon="✨"
+            multiline
+          />
+
+          {educationData.activities && (
+            <StructuredField
+              label="课外活动 (Activities)"
+              value={educationData.activities}
+              icon="🎯"
+              multiline
+            />
+          )}
+        </div>
+      );
+
+    case 'certifications':
+      const certData = data as LinkedInCertificationStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">📜</span>
+              优化后的证书认证
+            </h3>
+          </div>
+
+          <StructuredField
+            label="证书名称 (Name)"
+            value={certData.name}
+            maxLength={100}
+            icon="📋"
+          />
+
+          <StructuredField
+            label="颁发机构 (Organization)"
+            value={certData.organization}
+            maxLength={100}
+            icon="🏢"
+          />
+
+          {certData.issueDate && (
+            <StructuredField
+              label="颁发日期 (Issue Date)"
+              value={certData.issueDate}
+              icon="📅"
+            />
+          )}
+
+          {certData.credentialId && (
+            <StructuredField
+              label="证书ID (Credential ID)"
+              value={certData.credentialId}
+              icon="🔖"
+            />
+          )}
+
+          <StructuredField
+            label="适用场景/能力说明 (Description)"
+            value={certData.description}
+            maxLength={200}
+            icon="💡"
+            multiline
+          />
+        </div>
+      );
+
+    case 'projects':
+      const projectData = data as LinkedInProjectStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">🚀</span>
+              优化后的项目经历
+            </h3>
+          </div>
+
+          <StructuredField
+            label="项目名称 (Name)"
+            value={projectData.name}
+            maxLength={100}
+            icon="📌"
+          />
+
+          {projectData.role && (
+            <StructuredField
+              label="项目角色 (Role)"
+              value={projectData.role}
+              icon="👤"
+            />
+          )}
+
+          {projectData.date && (
+            <StructuredField
+              label="项目时间 (Date)"
+              value={projectData.date}
+              icon="📅"
+            />
+          )}
+
+          <StructuredField
+            label="项目描述 (Description)"
+            value={projectData.description}
+            maxLength={1000}
+            icon="📄"
+            multiline
+          />
+
+          {projectData.technologies && projectData.technologies.length > 0 && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="text-sm font-semibold text-blue-900 mb-2">🛠️ 技术栈</h4>
+              <div className="flex flex-wrap gap-2">
+                {projectData.technologies.map((tech, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+
+    case 'publications':
+      const publicationData = data as LinkedInPublicationStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">📚</span>
+              优化后的出版物
+            </h3>
+          </div>
+
+          <StructuredField
+            label="标题 (Title)"
+            value={publicationData.title}
+            maxLength={100}
+            icon="📖"
+          />
+
+          <StructuredField
+            label="出版商/平台 (Publisher)"
+            value={publicationData.publisher}
+            maxLength={100}
+            icon="🏢"
+          />
+
+          {publicationData.date && (
+            <StructuredField
+              label="发表日期 (Date)"
+              value={publicationData.date}
+              icon="📅"
+            />
+          )}
+
+          <StructuredField
+            label="简介 (Description)"
+            value={publicationData.description}
+            maxLength={500}
+            icon="📝"
+            multiline
+          />
+
+          {publicationData.url && (
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded">
+              <p className="text-xs text-gray-600">🔗 URL: {publicationData.url}</p>
+            </div>
+          )}
+        </div>
+      );
+
+    case 'awards':
+      const awardData = data as LinkedInAwardStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">🏆</span>
+              优化后的荣誉奖项
+            </h3>
+          </div>
+
+          <StructuredField
+            label="奖项名称 (Title)"
+            value={awardData.title}
+            maxLength={100}
+            icon="🏅"
+          />
+
+          <StructuredField
+            label="颁发机构 (Issuer)"
+            value={awardData.issuer}
+            maxLength={100}
+            icon="🏢"
+          />
+
+          {awardData.date && (
+            <StructuredField
+              label="获奖日期 (Date)"
+              value={awardData.date}
+              icon="📅"
+            />
+          )}
+
+          <StructuredField
+            label="获奖原因/意义 (Description)"
+            value={awardData.description}
+            maxLength={300}
+            icon="✨"
+            multiline
+          />
+        </div>
+      );
+
+    case 'volunteer':
+      const volunteerData = data as LinkedInVolunteerStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">🤝</span>
+              优化后的志愿经历
+            </h3>
+          </div>
+
+          <StructuredField
+            label="志愿角色 (Role)"
+            value={volunteerData.role}
+            maxLength={100}
+            icon="👤"
+          />
+
+          <StructuredField
+            label="组织名称 (Organization)"
+            value={volunteerData.organization}
+            maxLength={100}
+            icon="🏢"
+          />
+
+          {volunteerData.cause && (
+            <StructuredField
+              label="公益领域 (Cause)"
+              value={volunteerData.cause}
+              icon="💚"
+            />
+          )}
+
+          {volunteerData.date && (
+            <StructuredField
+              label="时间 (Date)"
+              value={volunteerData.date}
+              icon="📅"
+            />
+          )}
+
+          <StructuredField
+            label="经历描述 (Description)"
+            value={volunteerData.description}
+            maxLength={600}
+            icon="📄"
+            multiline
+          />
+        </div>
+      );
+
+    case 'recommendations':
+      const recommendationData = data as LinkedInRecommendationStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">💬</span>
+              推荐摘要
+            </h3>
+          </div>
+
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-900 font-medium mb-2">
+              📌 基于已有推荐的提炼总结
+            </p>
+            <p className="text-xs text-blue-700">
+              {recommendationData.note}
+            </p>
+          </div>
+
+          <StructuredField
+            label="核心摘要 (Summary)"
+            value={recommendationData.summary}
+            maxLength={300}
+            icon="📝"
+            multiline
+          />
+
+          <div className="p-4 bg-white border-2 border-gray-200 rounded-lg">
+            <h4 className="text-sm font-semibold text-gray-800 mb-3">🎯 关键主题</h4>
+            <div className="flex flex-wrap gap-2">
+              {recommendationData.keyThemes.map((theme, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
+                >
+                  {theme}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       );
 
