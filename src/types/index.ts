@@ -5,20 +5,22 @@
  */
 
 /**
- * LinkedIn 个人资料的不同部分
+ * LinkedIn 个人资料的不同部分（使用官方命名）
  */
 export type SectionType =
   | 'headline'
   | 'about'
   | 'experience'
   | 'education'
-  | 'certifications'
+  | 'licenses-certifications'  // 官方: Licenses & certifications
   | 'skills'
-  | 'projects'
-  | 'publications'
-  | 'awards'
-  | 'volunteer'
+  | 'projects'                 // Accomplishments 子分区
+  | 'publications'             // Accomplishments 子分区
+  | 'honors-awards'            // 官方: Honors & awards (Accomplishments 子分区)
+  | 'volunteer-experience'     // 官方: Volunteer experience
   | 'recommendations'
+  | 'featured'                 // 新增: Featured (精选内容)
+  | 'activity'                 // 新增: Activity (动态摘要)
   | 'general';
 
 /**
@@ -168,6 +170,29 @@ export interface LinkedInRecommendationStructured {
 }
 
 /**
+ * LinkedIn 精选内容结构化输出
+ */
+export interface LinkedInFeaturedStructured {
+  items: {
+    title: string;            // 条目标题 (max 100 chars)
+    description: string;      // 价值主张说明 (max 180 chars)
+    type?: string;            // 类型：文章、项目、媒体等 (可选)
+  }[];
+}
+
+/**
+ * LinkedIn 动态摘要结构化输出
+ */
+export interface LinkedInActivityStructured {
+  summary: string;            // 整体活跃度摘要 (max 200 chars)
+  topPosts: {
+    title: string;            // 帖子标题化摘要 (max 100 chars)
+    engagement?: string;      // 互动情况 (可选)
+  }[];
+  note: string;               // 说明：基于已有动态总结，不改变原意
+}
+
+/**
  * 通用结构化优化输出（联合类型）
  */
 export type StructuredOptimizationResult =
@@ -182,4 +207,6 @@ export type StructuredOptimizationResult =
   | LinkedInAwardStructured
   | LinkedInVolunteerStructured
   | LinkedInRecommendationStructured
+  | LinkedInFeaturedStructured
+  | LinkedInActivityStructured
   | { plainText: string };    // 降级处理：纯文本

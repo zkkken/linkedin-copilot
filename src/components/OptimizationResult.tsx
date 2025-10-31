@@ -18,7 +18,9 @@ import type {
   LinkedInPublicationStructured,
   LinkedInAwardStructured,
   LinkedInVolunteerStructured,
-  LinkedInRecommendationStructured
+  LinkedInRecommendationStructured,
+  LinkedInFeaturedStructured,
+  LinkedInActivityStructured
 } from '../types';
 
 interface OptimizationResultProps {
@@ -272,14 +274,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
         </div>
       );
 
-    case 'certifications':
+    case 'licenses-certifications':
       const certData = data as LinkedInCertificationStructured;
       return (
         <div className="space-y-3">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">📜</span>
-              优化后的证书认证
+              优化后的证书认证 (Licenses & Certifications)
             </h3>
           </div>
 
@@ -432,14 +434,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
         </div>
       );
 
-    case 'awards':
+    case 'honors-awards':
       const awardData = data as LinkedInAwardStructured;
       return (
         <div className="space-y-3">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">🏆</span>
-              优化后的荣誉奖项
+              优化后的荣誉奖项 (Honors & Awards)
             </h3>
           </div>
 
@@ -475,14 +477,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
         </div>
       );
 
-    case 'volunteer':
+    case 'volunteer-experience':
       const volunteerData = data as LinkedInVolunteerStructured;
       return (
         <div className="space-y-3">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">🤝</span>
-              优化后的志愿经历
+              优化后的志愿经历 (Volunteer Experience)
             </h3>
           </div>
 
@@ -564,6 +566,100 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
                 >
                   {theme}
                 </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+    case 'featured':
+      const featuredData = data as LinkedInFeaturedStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">⭐</span>
+              优化后的精选内容 (Featured)
+            </h3>
+          </div>
+
+          <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-900 font-medium mb-2">
+              ✨ 精选内容是展示代表作的黄金位置
+            </p>
+            <p className="text-xs text-yellow-700">
+              每条内容包含标题和价值说明，总长度建议不超过180字符
+            </p>
+          </div>
+
+          {featuredData.items?.map((item, index) => (
+            <div key={index} className="p-4 bg-white border-2 border-gray-200 rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-gray-700">精选项目 {index + 1}</h4>
+                {item.type && (
+                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                    {item.type}
+                  </span>
+                )}
+              </div>
+
+              <StructuredField
+                label="标题 (Title)"
+                value={item.title}
+                maxLength={100}
+                icon="📌"
+              />
+
+              <StructuredField
+                label="价值说明 (Description)"
+                value={item.description}
+                maxLength={180}
+                icon="💡"
+                multiline
+              />
+            </div>
+          ))}
+        </div>
+      );
+
+    case 'activity':
+      const activityData = data as LinkedInActivityStructured;
+      return (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <span className="mr-2">📢</span>
+              动态摘要 (Activity)
+            </h3>
+          </div>
+
+          <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 border-2 border-green-200 rounded-lg">
+            <p className="text-sm text-green-900 font-medium mb-2">
+              📊 基于已有LinkedIn动态的总结
+            </p>
+            <p className="text-xs text-green-700">
+              {activityData.note}
+            </p>
+          </div>
+
+          <StructuredField
+            label="整体活跃度摘要 (Summary)"
+            value={activityData.summary}
+            maxLength={200}
+            icon="📝"
+            multiline
+          />
+
+          <div className="p-4 bg-white border-2 border-gray-200 rounded-lg">
+            <h4 className="text-sm font-semibold text-gray-800 mb-3">🔥 热门帖子</h4>
+            <div className="space-y-3">
+              {activityData.topPosts?.map((post, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm font-medium text-gray-800 mb-1">{post.title}</p>
+                  {post.engagement && (
+                    <p className="text-xs text-gray-600">👍 {post.engagement}</p>
+                  )}
+                </div>
               ))}
             </div>
           </div>

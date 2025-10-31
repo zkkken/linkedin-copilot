@@ -154,17 +154,17 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
   "activities": "President of Computer Science Club, Hackathon organizer"
 }`;
 
-    case 'certifications':
-      return `You are a LinkedIn certifications expert. Optimize this certification to clearly convey its value and relevance.
+    case 'licenses-certifications':
+      return `You are a LinkedIn Licenses & Certifications expert. Optimize this certification to clearly convey its value and relevance.
 
 STRICT RULES:
 1. Name: Certification full name (max 100 chars)
 2. Organization: Issuing body (max 100 chars)
 3. Issue Date: Optional, format as "Month Year"
-4. Credential ID: Optional, include if available
+4. Credential ID: Optional, include if available (if provided in input, otherwise leave empty)
 5. Description: MUST be under 200 characters
-   - One sentence explaining the skill/capability it validates
-   - Focus on practical application, not just what it is
+   - Application scenario + Capability boundary (two-sentence method)
+   - Focus on practical application and what it enables you to do
    - NO marketing fluff or generic statements
 6. NO markdown formatting - plain text only
 ${jobDescription ? '7. Highlight relevance to target role' : ''}
@@ -238,8 +238,8 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
   "url": ""
 }`;
 
-    case 'awards':
-      return `You are a LinkedIn awards expert. Optimize this award entry to highlight achievement and significance.
+    case 'honors-awards':
+      return `You are a LinkedIn Honors & Awards expert. Optimize this award entry to highlight achievement and significance.
 
 STRICT RULES:
 1. Title: Award name (max 100 chars)
@@ -247,10 +247,11 @@ STRICT RULES:
 3. Date: When you received it (optional), format as "Month Year"
 4. Description: MUST be under 300 characters
    - WHY you received it (the achievement or criteria)
-   - What it represents (selectivity, recognition level)
-   - Impact or significance
+   - Evaluation criteria or selection ratio if available (e.g., "top 5%", "1 of 10 recipients")
+   - Impact or significance of the achievement
    - Avoid just restating the award name
 5. NO markdown formatting - plain text only
+${jobDescription ? '6. Emphasize achievements relevant to target role' : ''}
 
 Award Content:
 ${content}
@@ -264,8 +265,8 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
   "description": "Awarded to top 5 employees company-wide (out of 5,000+) for developing an AI-driven cost optimization system that saved $2.3M annually and improved operational efficiency by 40%."
 }`;
 
-    case 'volunteer':
-      return `You are a LinkedIn volunteer experience expert. Optimize this volunteer experience to showcase contribution and impact.
+    case 'volunteer-experience':
+      return `You are a LinkedIn Volunteer Experience expert. Optimize this volunteer experience to showcase contribution, impact, and transferable skills.
 
 STRICT RULES:
 1. Role: Your volunteer role/title (max 100 chars)
@@ -276,8 +277,10 @@ STRICT RULES:
    - Structure: Context → Your contribution → Impact achieved
    - Use bullet points with • symbol for key accomplishments
    - Quantify impact where possible (people helped, funds raised, etc.)
-   - Show transferable skills and leadership
+   - EMPHASIZE transferable skills (leadership, project management, communication, etc.)
+   - Show how volunteer work demonstrates professional capabilities
 6. NO markdown formatting (**, ##, etc.) - plain text only
+${jobDescription ? '7. Highlight skills relevant to target role' : ''}
 
 Volunteer Content:
 ${content}
@@ -315,6 +318,78 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
   "summary": "Consistently praised for technical leadership and mentorship. Multiple colleagues highlight ability to break down complex problems and empower junior developers. Known for delivering high-quality code under tight deadlines.",
   "keyThemes": ["Technical Leadership", "Mentorship", "Problem Solving", "Code Quality", "Collaboration"],
   "note": "Summary based on existing recommendations from colleagues and managers"
+}`;
+
+    case 'featured':
+      return `You are a LinkedIn Featured content expert. Optimize featured items to clearly communicate their value and drive engagement.
+
+STRICT RULES:
+1. Items: Array of 2-4 featured items
+2. Each item has:
+   - Title: Concise title (max 100 chars)
+   - Description: Value proposition in 1 sentence (max 180 chars total for title + description)
+   - Type: Optional (e.g., "Article", "Project", "Media", "Link")
+3. Focus on:
+   - What makes this worth featuring
+   - What value it provides to viewers
+   - Call-to-action implications (e.g., "learn more", "see results")
+4. NO markdown formatting - plain text only
+${jobDescription ? '5. Emphasize items relevant to target role' : ''}
+
+Featured Content:
+${content}
+${jobContext}
+
+OUTPUT FORMAT - Return ONLY valid JSON, no other text:
+{
+  "items": [
+    {
+      "title": "Building Scalable Microservices: Best Practices",
+      "description": "Comprehensive guide based on production experience scaling systems to 1M+ users. Includes architecture diagrams and code samples.",
+      "type": "Article"
+    },
+    {
+      "title": "Open Source Contribution: React Performance Library",
+      "description": "Contributed core optimization features now used by 50K+ developers. Reduced bundle size by 40%.",
+      "type": "Project"
+    }
+  ]
+}`;
+
+    case 'activity':
+      return `You are a LinkedIn Activity summarizer. Create a concise summary of recent LinkedIn activity that showcases professional engagement.
+
+IMPORTANT: DO NOT fabricate posts or activity. Only summarize what is provided.
+
+STRICT RULES:
+1. Summary: MUST be under 200 characters
+   - Overall theme of recent activity
+   - Areas of professional focus
+   - Engagement level (if mentioned)
+2. Top Posts: Array of 2-3 most impactful posts
+   - Title: 1-sentence summary of the post (max 100 chars)
+   - Engagement: Optional (likes, comments, shares if provided)
+3. Note: Acknowledge this is based on existing activity, no fabrication
+4. NO markdown formatting - plain text only
+
+Recent Activity:
+${content}
+${jobContext}
+
+OUTPUT FORMAT - Return ONLY valid JSON, no other text:
+{
+  "summary": "Actively shares insights on cloud architecture and DevOps best practices. Engages with industry leaders on emerging technologies and team leadership.",
+  "topPosts": [
+    {
+      "title": "5 lessons learned migrating 100+ microservices to Kubernetes",
+      "engagement": "450 reactions, 78 comments"
+    },
+    {
+      "title": "Why technical debt isn't always bad - strategic approach to managing it",
+      "engagement": "320 reactions, 52 comments"
+    }
+  ],
+  "note": "Summary based on existing LinkedIn activity, no content fabricated"
 }`;
 
     case 'general':
@@ -422,7 +497,7 @@ export const parseStructuredResponse = (
         }
         break;
 
-      case 'certifications':
+      case 'licenses-certifications':
         if (!parsed.name || !parsed.organization || !parsed.description) {
           throw new Error('Invalid certification structure');
         }
@@ -467,7 +542,7 @@ export const parseStructuredResponse = (
         }
         break;
 
-      case 'awards':
+      case 'honors-awards':
         if (!parsed.title || !parsed.issuer || !parsed.description) {
           throw new Error('Invalid award structure');
         }
@@ -483,7 +558,7 @@ export const parseStructuredResponse = (
         }
         break;
 
-      case 'volunteer':
+      case 'volunteer-experience':
         if (!parsed.role || !parsed.organization || !parsed.description) {
           throw new Error('Invalid volunteer structure');
         }
@@ -506,6 +581,40 @@ export const parseStructuredResponse = (
         // 确保字符限制
         if (parsed.summary.length > 300) {
           parsed.summary = parsed.summary.substring(0, 297) + '...';
+        }
+        break;
+
+      case 'featured':
+        if (!parsed.items || !Array.isArray(parsed.items)) {
+          throw new Error('Invalid featured structure');
+        }
+        // 确保字符限制
+        parsed.items = parsed.items.map((item: any) => {
+          if (item.title && item.title.length > 100) {
+            item.title = item.title.substring(0, 97) + '...';
+          }
+          if (item.description && item.description.length > 180) {
+            item.description = item.description.substring(0, 177) + '...';
+          }
+          return item;
+        });
+        break;
+
+      case 'activity':
+        if (!parsed.summary || !parsed.topPosts || !parsed.note) {
+          throw new Error('Invalid activity structure');
+        }
+        // 确保字符限制
+        if (parsed.summary.length > 200) {
+          parsed.summary = parsed.summary.substring(0, 197) + '...';
+        }
+        if (Array.isArray(parsed.topPosts)) {
+          parsed.topPosts = parsed.topPosts.map((post: any) => {
+            if (post.title && post.title.length > 100) {
+              post.title = post.title.substring(0, 97) + '...';
+            }
+            return post;
+          });
         }
         break;
 
