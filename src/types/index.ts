@@ -5,6 +5,17 @@
  */
 
 /**
+ * 优化建议项
+ */
+export interface OptimizationSuggestion {
+  type: string;           // 优化类型：如"添加量化指标"、"使用STAR方法"、"关键词优化"
+  reason: string;         // 为什么这样优化
+  improvement: string;    // 具体改进内容
+  before?: string;        // 原文片段（可选）
+  after?: string;         // 改后片段（可选）
+}
+
+/**
  * LinkedIn 个人资料的不同部分（使用官方命名）
  */
 export type SectionType =
@@ -59,6 +70,7 @@ export interface AppState {
  * LinkedIn 工作经历结构化输出接口
  */
 export interface LinkedInExperienceStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   title: string;              // 职位头衔 (max 100 chars)
   employmentType: string;     // 职位性质: Full-time | Part-time | Contract | Internship | Freelance
   company: string;            // 公司名称 (max 100 chars)
@@ -70,6 +82,7 @@ export interface LinkedInExperienceStructured {
  * LinkedIn 标题优化结构化输出
  */
 export interface LinkedInHeadlineStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   options: string[];          // 多个优化选项 (each max 220 chars)
 }
 
@@ -77,6 +90,7 @@ export interface LinkedInHeadlineStructured {
  * LinkedIn 个人简介优化结构化输出
  */
 export interface LinkedInAboutStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   optimizedText: string;      // 优化后的完整文本 (max 2600 chars)
   keyPoints?: string[];       // 关键亮点提取（可选）
 }
@@ -85,6 +99,7 @@ export interface LinkedInAboutStructured {
  * LinkedIn 技能优化结构化输出
  */
 export interface LinkedInSkillsStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   categories: {
     name: string;             // 类别名称（如"技术技能"）
     skills: string[];         // 该类别下的技能列表
@@ -95,6 +110,7 @@ export interface LinkedInSkillsStructured {
  * LinkedIn 教育经历结构化输出
  */
 export interface LinkedInEducationStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   degree: string;             // 学位名称 (e.g., "Bachelor of Science in Computer Science")
   school: string;             // 学校名称 (max 100 chars)
   fieldOfStudy?: string;      // 专业领域 (可选)
@@ -107,6 +123,7 @@ export interface LinkedInEducationStructured {
  * LinkedIn 证书认证结构化输出
  */
 export interface LinkedInCertificationStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   name: string;               // 证书名称 (max 100 chars)
   organization: string;       // 颁发机构 (max 100 chars)
   issueDate?: string;         // 颁发日期 (可选)
@@ -118,6 +135,7 @@ export interface LinkedInCertificationStructured {
  * LinkedIn 项目经历结构化输出
  */
 export interface LinkedInProjectStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   name: string;               // 项目名称 (max 100 chars)
   role?: string;              // 项目角色 (可选)
   date?: string;              // 项目时间 (可选)
@@ -129,6 +147,7 @@ export interface LinkedInProjectStructured {
  * LinkedIn 出版物结构化输出
  */
 export interface LinkedInPublicationStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   title: string;              // 标题 (max 100 chars)
   publisher: string;          // 出版商/平台 (max 100 chars)
   date?: string;              // 发表日期 (可选)
@@ -140,6 +159,7 @@ export interface LinkedInPublicationStructured {
  * LinkedIn 荣誉奖项结构化输出
  */
 export interface LinkedInAwardStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   title: string;              // 奖项名称 (max 100 chars)
   issuer: string;             // 颁发机构 (max 100 chars)
   date?: string;              // 获奖日期 (可选)
@@ -150,6 +170,7 @@ export interface LinkedInAwardStructured {
  * LinkedIn 志愿经历结构化输出
  */
 export interface LinkedInVolunteerStructured {
+  suggestions: OptimizationSuggestion[];  // 优化建议列表
   role: string;               // 志愿角色 (max 100 chars)
   organization: string;       // 组织名称 (max 100 chars)
   cause?: string;             // 公益领域 (可选)

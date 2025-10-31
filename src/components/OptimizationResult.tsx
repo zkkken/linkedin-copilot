@@ -9,6 +9,7 @@ import { StructuredField } from './StructuredField';
 import { CopyButton } from './CopyButton';
 import type {
   SectionType,
+  OptimizationSuggestion,
   LinkedInExperienceStructured,
   LinkedInHeadlineStructured,
   LinkedInAboutStructured,
@@ -26,14 +27,68 @@ interface OptimizationResultProps {
   data: any;                    // 结构化数据或纯文本
 }
 
+type TabType = 'final' | 'suggestions';
+
+/**
+ * 优化建议展示组件
+ */
+const SuggestionsView: React.FC<{ suggestions: OptimizationSuggestion[] }> = ({ suggestions }) => {
+  if (!suggestions || suggestions.length === 0) {
+    return (
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
+        暂无优化建议
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {suggestions.map((suggestion, index) => (
+        <div key={index} className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0 w-6 h-6 bg-[#0A66C2] text-white rounded-full flex items-center justify-center text-xs font-bold">
+              {index + 1}
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-1 bg-[#0A66C2] text-white text-xs font-semibold rounded">
+                  {suggestion.type}
+                </span>
+              </div>
+              <p className="text-sm text-gray-700">
+                <strong className="text-[#0A66C2]">原因：</strong>{suggestion.reason}
+              </p>
+              <p className="text-sm text-gray-700">
+                <strong className="text-[#0A66C2]">改进：</strong>{suggestion.improvement}
+              </p>
+              {suggestion.before && (
+                <div className="mt-2 pl-3 border-l-2 border-red-300 bg-red-50 p-2 rounded">
+                  <p className="text-xs text-red-700"><strong>修改前：</strong>{suggestion.before}</p>
+                </div>
+              )}
+              {suggestion.after && (
+                <div className="mt-1 pl-3 border-l-2 border-green-300 bg-green-50 p-2 rounded">
+                  <p className="text-xs text-green-700"><strong>修改后：</strong>{suggestion.after}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export const OptimizationResult: React.FC<OptimizationResultProps> = ({
   sectionType,
   data
 }) => {
   const [activeExperienceIndex, setActiveExperienceIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<TabType>('final');
 
   useEffect(() => {
     setActiveExperienceIndex(0);
+    setActiveTab('final'); // 切换字段时重置为最终版本tab
   }, [sectionType, data]);
 
   // 如果是降级处理（纯文本）
@@ -62,6 +117,32 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
     );
   }
 
+  // Tab切换按钮组件
+  const TabButtons = () => (
+    <div className="flex border-b border-gray-200 mb-4">
+      <button
+        onClick={() => setActiveTab('final')}
+        className={`px-4 py-2 text-sm font-medium transition-colors ${
+          activeTab === 'final'
+            ? 'border-b-2 border-[#0A66C2] text-[#0A66C2]'
+            : 'text-gray-500 hover:text-gray-700'
+        }`}
+      >
+        📋 最终版本
+      </button>
+      <button
+        onClick={() => setActiveTab('suggestions')}
+        className={`px-4 py-2 text-sm font-medium transition-colors ${
+          activeTab === 'suggestions'
+            ? 'border-b-2 border-[#0A66C2] text-[#0A66C2]'
+            : 'text-gray-500 hover:text-gray-700'
+        }`}
+      >
+        💡 优化建议
+      </button>
+    </div>
+  );
+
   // 根据不同的SectionType渲染不同的结构
   switch (sectionType) {
     case 'headline':
@@ -74,18 +155,29 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
               优化后的LinkedIn标题选项
             </h3>
           </div>
-          <p className="text-sm text-gray-600">
-            AI生成了{headlineData.options?.length || 0}个优化选项，您可以选择最适合的一个：
-          </p>
-          {headlineData.options?.map((option, index) => (
-            <StructuredField
-              key={index}
-              label={`选项 ${index + 1}`}
-              value={option}
-              maxLength={220}
-              icon="💡"
-            />
-          ))}
+
+          <TabButtons />
+
+          {activeTab === 'final' && (
+            <>
+              <p className="text-sm text-gray-600">
+                AI生成了{headlineData.options?.length || 0}个优化选项，您可以选择最适合的一个：
+              </p>
+              {headlineData.options?.map((option, index) => (
+                <StructuredField
+                  key={index}
+                  label={`选项 ${index + 1}`}
+                  value={option}
+                  maxLength={220}
+                  icon="💡"
+                />
+              ))}
+            </>
+          )}
+
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={headlineData.suggestions || []} />
+          )}
         </div>
       );
 
@@ -99,22 +191,33 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
               优化后的个人简介
             </h3>
           </div>
-          <StructuredField
-            label="完整简介"
-            value={aboutData.optimizedText}
-            maxLength={2600}
-            icon="📝"
-            multiline
-          />
-          {aboutData.keyPoints && aboutData.keyPoints.length > 0 && (
-            <div className="p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
-              <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">✨ 关键亮点</h4>
-              <ul className="text-sm text-[#0A66C2] space-y-1">
-                {aboutData.keyPoints.map((point, index) => (
-                  <li key={index}>• {point}</li>
-                ))}
-              </ul>
-            </div>
+
+          <TabButtons />
+
+          {activeTab === 'final' && (
+            <>
+              <StructuredField
+                label="完整简介"
+                value={aboutData.optimizedText}
+                maxLength={2600}
+                icon="📝"
+                multiline
+              />
+              {aboutData.keyPoints && aboutData.keyPoints.length > 0 && (
+                <div className="p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+                  <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">✨ 关键亮点</h4>
+                  <ul className="text-sm text-[#0A66C2] space-y-1">
+                    {aboutData.keyPoints.map((point, index) => (
+                      <li key={index}>• {point}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={aboutData.suggestions || []} />
           )}
         </div>
       );

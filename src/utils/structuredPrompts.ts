@@ -36,6 +36,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Add quantification, Keyword optimization)",
+      "reason": "Why this change improves the headline",
+      "improvement": "What was improved"
+    }
+  ],
   "options": [
     "Option 1 text here (under 220 chars)",
     "Option 2 text here (under 220 chars)",
@@ -63,6 +70,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Added story hook, Quantified achievements)",
+      "reason": "Why this change improves the About section",
+      "improvement": "What was improved"
+    }
+  ],
   "optimizedText": "The complete optimized About section text here as plain text with paragraph breaks using \\n\\n",
   "keyPoints": ["Key point 1", "Key point 2", "Key point 3"]
 }`;
@@ -89,15 +103,18 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
-  "experiences": [
+  "suggestions": [
     {
-      "title": "Job title (max 100 chars)",
-      "employmentType": "Full-time",
-      "company": "Company name (max 100 chars)",
-      "location": "City, Country (optional)",
-      "description": "• Achievement bullet 1 with quantified results\\n• Achievement bullet 2 with STAR method\\n• Achievement bullet 3 showing business impact\\n• Achievement bullet 4 with specific numbers"
+      "type": "Optimization type (e.g., STAR method applied, Quantified impact)",
+      "reason": "Why this change improves the experience",
+      "improvement": "What was improved"
     }
-  ]
+  ],
+  "title": "Job title (max 100 chars)",
+  "employmentType": "Full-time",
+  "company": "Company name (max 100 chars)",
+  "location": "City, Country (optional)",
+  "description": "• Achievement bullet 1 with quantified results\\n• Achievement bullet 2 with STAR method\\n• Achievement bullet 3 showing business impact\\n• Achievement bullet 4 with specific numbers"
 }`;
 
     case 'skills':
@@ -117,6 +134,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Categorized skills, Prioritized in-demand skills)",
+      "reason": "Why this change improves skills presentation",
+      "improvement": "What was improved"
+    }
+  ],
   "categories": [
     {
       "name": "Technical Skills",
@@ -151,6 +175,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Highlighted relevant coursework, Quantified achievements)",
+      "reason": "Why this change improves education presentation",
+      "improvement": "What was improved"
+    }
+  ],
   "degree": "Bachelor of Science in Computer Science",
   "school": "University Name",
   "fieldOfStudy": "Computer Science",
@@ -180,6 +211,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Clarified application scope, Added capability boundary)",
+      "reason": "Why this change improves certification presentation",
+      "improvement": "What was improved"
+    }
+  ],
   "name": "AWS Certified Solutions Architect - Professional",
   "organization": "Amazon Web Services (AWS)",
   "issueDate": "January 2024",
@@ -209,6 +247,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Applied STAR method, Quantified impact)",
+      "reason": "Why this change improves project presentation",
+      "improvement": "What was improved"
+    }
+  ],
   "name": "E-commerce Platform Modernization",
   "role": "Lead Developer",
   "date": "Jan 2023 - Jun 2023",
@@ -236,6 +281,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Clarified key contribution, Added impact metrics)",
+      "reason": "Why this change improves publication presentation",
+      "improvement": "What was improved"
+    }
+  ],
   "title": "Scalable Machine Learning Pipelines for Real-Time Analytics",
   "publisher": "ACM Computing Surveys",
   "date": "March 2024",
@@ -264,6 +316,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Added selection criteria, Quantified achievement impact)",
+      "reason": "Why this change improves award presentation",
+      "improvement": "What was improved"
+    }
+  ],
   "title": "Top Innovator Award 2024",
   "issuer": "Tech Corporation",
   "date": "December 2024",
@@ -293,6 +352,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Quantified impact, Highlighted transferable skills)",
+      "reason": "Why this change improves volunteer experience presentation",
+      "improvement": "What was improved"
+    }
+  ],
   "role": "Technical Mentor",
   "organization": "Code for Good Foundation",
   "cause": "Education",
@@ -322,6 +388,13 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
+  "suggestions": [
+    {
+      "type": "Optimization type (e.g., Applied STAR method, Added quantification)",
+      "reason": "Why this change improves the content",
+      "improvement": "What was improved"
+    }
+  ],
   "plainText": "The optimized content as plain text here"
 }`;
   }

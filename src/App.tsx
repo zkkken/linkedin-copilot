@@ -399,44 +399,103 @@ function App() {
       const captureResult = await captureCurrentTab();
       setOptimizedText('截图已捕获，正在通过 Gemini Vision API 分析...');
 
-      // 2. 生成分析提示词
+      // 2. 生成分析提示词（提取文本）
       const visionPrompt = `
-请仔细分析这张 LinkedIn 个人资料页面的截图。
+请仔细分析这张 LinkedIn 个人资料页面的截图，提取所有可见的文本内容。
 
 任务：
-1. 使用 OCR 技术识别图片中的所有文字内容
-2. 提取关键的个人资料信息，包括：
-   - 标题/职位 (Headline)
-   - 关于/简介 (About)
-   - 工作经验 (Experience)
-   - 技能 (Skills)
-3. 识别当前展示的主要部分是什么
+1. 使用 OCR 技术识别图片中的所有文字
+2. 提取并分类LinkedIn个人资料的各个部分（如果可见）：
+   - Headline (标题/职位)
+   - About (个人简介)
+   - Experience (工作经历)
+   - Education (教育经历)
+   - Skills (技能)
+   - Projects (项目)
+   等等
 
-请按以下格式输出（如果某个部分不可见，则省略）：
-
-**识别的内容类型**: [标题/关于/经验/技能]
-
-**提取的文本**:
-[原文内容]
-
-**优化建议**:
-[针对该内容的 3-5 条具体优化建议，使用 STAR 方法]
+请严格按照JSON格式输出（只输出JSON，不要其他文字）：
+{
+  "headline": "提取的标题文本（如果可见）",
+  "about": "提取的About部分完整文本（如果可见）",
+  "experience": "提取的Experience部分完整文本（如果可见）",
+  "education": "提取的Education部分完整文本（如果可见）",
+  "skills": "提取的Skills文本（如果可见）",
+  "projects": "提取的Projects文本（如果可见）"
+}
 
 注意：
-- 请尽可能准确地识别文字
-- 如果图片模糊或无法识别，请明确说明
-- 优化建议要具体、可操作
+- 如果某个部分不可见或无法识别，该字段值设为空字符串""
+- 只提取文本，不要添加优化建议
+- 尽可能准确地识别文字
+- 保持原文格式和换行
 `;
 
       // 3. 调用 Vision API 分析
       const analysisResult = await analyzeScreenshot(captureResult.dataUrl, visionPrompt);
 
-      // 4. 显示结果
-      setOptimizedText(analysisResult);
+      // 4. 解析Vision API返回的JSON
+      try {
+        // 尝试提取JSON（Vision API可能返回markdown格式）
+        const jsonMatch = analysisResult.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error('无法从Vision API响应中提取JSON');
+        }
 
-      // 5. 可选：尝试提取文本到输入框
-      // 这里可以添加逻辑将识别的文本填充到 resumeContent
-      // 暂时先显示在结果区域
+        const extractedData = JSON.parse(jsonMatch[0]);
+
+        // 5. 将提取的文本按字段存储（类似PDF模式）
+        const entries: SectionEntriesMap = {};
+        let hasAnyContent = false;
+
+        // 映射Vision API字段到SectionType
+        const fieldMapping: Record<string, SectionType> = {
+          'headline': 'headline',
+          'about': 'about',
+          'experience': 'experience',
+          'education': 'education',
+          'skills': 'skills',
+          'projects': 'projects'
+        };
+
+        for (const [visionField, sectionType] of Object.entries(fieldMapping)) {
+          const content = extractedData[visionField]?.trim();
+          if (content) {
+            entries[sectionType] = [content]; // 存储为数组（单段）
+            hasAnyContent = true;
+          }
+        }
+
+        if (!hasAnyContent) {
+          throw new Error('未能从截图中识别到任何LinkedIn内容');
+        }
+
+        // 6. 设置状态（类似PDF模式）
+        setSectionEntries(entries);
+        setIsPdfSource(true); // 标记为"非手动输入"模式
+        setFullPdfText(analysisResult); // 保存原始Vision响应作为备份
+
+        // 设置默认索引
+        const defaultIndexes: Partial<Record<SectionType, number>> = {};
+        (Object.keys(entries) as SectionType[]).forEach((section) => {
+          defaultIndexes[section] = 0;
+        });
+        setSectionEntryIndex(defaultIndexes);
+
+        // 7. 自动切换到第一个识别到的字段
+        const firstSection = Object.keys(entries)[0] as SectionType;
+        setCurrentSection(firstSection);
+        const firstContent = entries[firstSection];
+        if (firstContent && firstContent[0]) {
+          setResumeContent(firstContent[0]);
+        }
+
+        setOptimizedText('✅ 截图内容已提取！请选择要优化的字段，然后点击「优化」按钮。');
+
+      } catch (parseError) {
+        console.error('解析Vision API响应失败:', parseError);
+        setOptimizedText(`⚠️ 截图分析失败: ${parseError instanceof Error ? parseError.message : '未知错误'}\n\n原始响应:\n${analysisResult}`);
+      }
 
     } catch (error) {
       console.error('截图分析失败:', error);
