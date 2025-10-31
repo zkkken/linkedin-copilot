@@ -14,7 +14,7 @@ export const SECTION_CONFIGS: Record<SectionType, SectionConfig> = {
     id: 'general',
     label: '通用内容',
     placeholder: '粘贴您想优化的任何 LinkedIn 内容...',
-    description: '适用于任何需要优化的内容',
+    description: '不限于特定LinkedIn字段，适合自由格式内容或测试使用',
     rows: 5,
     icon: '📝',
   },

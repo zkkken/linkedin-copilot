@@ -729,9 +729,9 @@ function App() {
       {inputMode !== 'screenshot' && (
         <button
           onClick={handleOptimize}
-          disabled={isLoading || !resumeContent.trim()}
+          disabled={isLoading || (!resumeContent.trim() && !(isPdfSource && fullPdfText))}
           className={`w-full mt-6 py-3 px-4 rounded-lg text-sm font-semibold transition-all shadow-md ${
-            isLoading || !resumeContent.trim()
+            isLoading || (!resumeContent.trim() && !(isPdfSource && fullPdfText))
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-[#0A66C2] text-white hover:bg-[#004182] active:scale-98 shadow-blue-200'
           }`}
