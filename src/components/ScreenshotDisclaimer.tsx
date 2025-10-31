@@ -62,15 +62,22 @@ export function ScreenshotDisclaimer({ onConsent, isLinkedInPage }: ScreenshotDi
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              截图前请先完成以下准备
+              📋 截图前请先完成以下准备
             </h3>
-            <ol className="text-xs text-indigo-800 list-decimal list-inside space-y-1">
-              <li>点击 LinkedIn 个人资料中的「编辑」按钮进入编辑视图，或将页面内容全部展开。</li>
-              <li>确认需要分析的「关于」「经历」「技能」等模块已经完全显示在屏幕上。</li>
+            <ol className="text-xs text-indigo-800 list-decimal list-inside space-y-1.5">
+              <li>
+                在 LinkedIn 页面上，点击您想要优化的<strong>特定字段</strong>的「<span className="bg-indigo-100 px-1 rounded">✏️ Edit</span>」按钮
+                <div className="text-[11px] text-indigo-700 ml-5 mt-1">
+                  例如：要优化"关于"部分，请点击"关于"模块右上角的 Edit 按钮
+                </div>
+              </li>
+              <li>
+                确认该字段的编辑面板已打开，或确保页面内容已<strong>完全展开</strong>（点击"查看更多"）
+                <div className="text-[11px] text-indigo-700 ml-5 mt-1">
+                  避免内容被折叠，否则截图可能遗漏重要信息
+                </div>
+              </li>
             </ol>
-            <p className="text-[11px] text-indigo-700 bg-white bg-opacity-60 border border-indigo-200 rounded px-3 py-2">
-              这是为了确保截图中包含完整信息，避免遗漏折叠的内容。
-            </p>
           </div>
 
           {/* LinkedIn 页面检测 */}
@@ -162,7 +169,7 @@ export function ScreenshotDisclaimer({ onConsent, isLinkedInPage }: ScreenshotDi
                 className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
               />
               <span className="ml-3 text-xs text-gray-700">
-                我已在 LinkedIn 页面点击「编辑」按钮进入编辑视图，或已手动展开所有需要分析的内容模块。
+                我已在 LinkedIn 页面点击<strong>特定字段</strong>（如"关于"、"经历"）的「✏️ Edit」按钮，或已手动展开该字段的所有内容。
               </span>
             </label>
             <label className="flex items-start cursor-pointer">

@@ -713,6 +713,30 @@ function App() {
               使用 Gemini Vision API 直接分析您的 LinkedIn 页面截图，自动提取内容并提供优化建议。
             </p>
 
+            {/* 📌 截图前准备说明 - 移至按钮附近以增强可见性 */}
+            <div className="mb-3 p-3 bg-indigo-50 border-l-4 border-indigo-400 rounded space-y-2">
+              <h4 className="text-xs font-bold text-indigo-900 flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                📋 截图前请先完成以下准备
+              </h4>
+              <ol className="text-xs text-indigo-800 list-decimal list-inside space-y-1.5 ml-2">
+                <li>
+                  在 LinkedIn 页面上，点击您想要优化的<strong>特定字段</strong>的「<span className="bg-indigo-100 px-1 rounded">✏️ Edit</span>」按钮
+                  <div className="text-[11px] text-indigo-700 ml-5 mt-1">
+                    例如：要优化"关于"部分，请点击"关于"模块右上角的 Edit 按钮
+                  </div>
+                </li>
+                <li>
+                  确认该字段的编辑面板已打开，或确保页面内容已<strong>完全展开</strong>（点击"查看更多"）
+                  <div className="text-[11px] text-indigo-700 ml-5 mt-1">
+                    避免内容被折叠，否则截图可能遗漏重要信息
+                  </div>
+                </li>
+              </ol>
+            </div>
+
             <button
               onClick={handleScreenshotClick}
               disabled={isLoading || isCapturing}
