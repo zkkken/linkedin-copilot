@@ -598,6 +598,11 @@ export const parseStructuredResponse = (
         break;
     }
 
+    // 🔧 确保suggestions字段存在（向后兼容：即使AI没返回suggestions也不会出错）
+    if (!parsed.suggestions || !Array.isArray(parsed.suggestions)) {
+      parsed.suggestions = [];
+    }
+
     return parsed;
 
   } catch (error) {

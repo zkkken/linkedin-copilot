@@ -350,7 +350,8 @@ function App() {
 
   // 核心调用函数 (已更新 - 检查同意状态)
   const handleOptimize = async () => {
-    if (!resumeContent.trim()) {
+    // 🔧 修复：PDF/截图模式下即使resumeContent为空也允许优化（使用fullPdfText）
+    if (!resumeContent.trim() && !(isPdfSource && fullPdfText)) {
       alert('请输入简历内容！');
       return;
     }
