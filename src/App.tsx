@@ -696,8 +696,30 @@ function App() {
         </div>
       )}
 
-      {inputMode === 'screenshot' && (
+      {inputMode === 'manual' && (
         <div className="mb-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <p className="text-xs text-green-800 flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <strong>推荐模式</strong> - 最安全、最合规的输入方式
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* 🔄 优化：字段类型选择器移到最前面 - 用户应先选择要优化什么字段 */}
+      {/* 字段类型选择器 */}
+      <SectionSelector
+        selectedSection={currentSection}
+        onSectionChange={handleSectionChange}
+        disabled={isLoading}
+      />
+
+      {/* 🔄 优化：截图模块移到字段选择器之后 - 选好字段后再准备和捕获 */}
+      {inputMode === 'screenshot' && (
+        <div className="mb-4 mt-4">
           <div className="bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-[#0A66C2] flex items-center">
@@ -710,10 +732,10 @@ function App() {
             </div>
 
             <p className="text-xs text-[#0A66C2] mb-3">
-              使用 Gemini Vision API 直接分析您的 LinkedIn 页面截图，自动提取内容并提供优化建议。
+              使用 Gemini Vision API 直接分析您的 LinkedIn 页面截图，自动提取<strong>「{getSectionConfig(currentSection).label}」</strong>内容并提供优化建议。
             </p>
 
-            {/* 📌 截图前准备说明 - 移至按钮附近以增强可见性 */}
+            {/* 📌 截图前准备说明 - 根据选择的字段给出针对性指导 */}
             <div className="mb-3 p-3 bg-indigo-50 border-l-4 border-indigo-400 rounded space-y-2">
               <h4 className="text-xs font-bold text-indigo-900 flex items-center">
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -723,9 +745,9 @@ function App() {
               </h4>
               <ol className="text-xs text-indigo-800 list-decimal list-inside space-y-1.5 ml-2">
                 <li>
-                  在 LinkedIn 页面上，点击您想要优化的<strong>特定字段</strong>的「<span className="bg-indigo-100 px-1 rounded">✏️ Edit</span>」按钮
+                  在 LinkedIn 页面上，点击<strong>「{getSectionConfig(currentSection).label}」</strong>部分右上角的「<span className="bg-indigo-100 px-1 rounded">✏️ Edit</span>」按钮
                   <div className="text-[11px] text-indigo-700 ml-5 mt-1">
-                    例如：要优化"关于"部分，请点击"关于"模块右上角的 Edit 按钮
+                    打开该字段的编辑面板，确保内容完整显示
                   </div>
                 </li>
                 <li>
@@ -771,26 +793,6 @@ function App() {
           </div>
         </div>
       )}
-
-      {inputMode === 'manual' && (
-        <div className="mb-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <p className="text-xs text-green-800 flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <strong>推荐模式</strong> - 最安全、最合规的输入方式
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 字段类型选择器 */}
-      <SectionSelector
-        selectedSection={currentSection}
-        onSectionChange={handleSectionChange}
-        disabled={isLoading}
-      />
 
       {/* 动态内容输入框 */}
       {(() => {
@@ -854,15 +856,43 @@ function App() {
             ) : (
               /* PDF/截图模式：显示提示，不显示编辑框 */
               <div className="mt-2 p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
-                <p className="text-sm text-[#0A66C2] font-medium mb-1">
-                  📋 {inputMode === 'pdf' ? 'PDF内容已提取' : '截图内容已分析'}
-                </p>
-                <p className="text-xs text-[#0A66C2]">
-                  {isPdfSource && hasExtractedEntries
-                    ? `当前显示：第 ${activeEntryIndex + 1} 段（共 ${entriesForCurrentSection.length} 段）`
-                    : '点击下方「优化」按钮生成LinkedIn优化建议'
-                  }
-                </p>
+                {/* 🔧 修复：只有在真正提取了内容后才显示"已提取/已分析" */}
+                {inputMode === 'pdf' ? (
+                  // PDF模式
+                  uploadedFileName && fullPdfText ? (
+                    <>
+                      <p className="text-sm text-[#0A66C2] font-medium mb-1">
+                        📋 PDF内容已提取
+                      </p>
+                      <p className="text-xs text-[#0A66C2]">
+                        {isPdfSource && hasExtractedEntries
+                          ? `当前显示：第 ${activeEntryIndex + 1} 段（共 ${entriesForCurrentSection.length} 段）`
+                          : '点击下方「优化」按钮生成LinkedIn优化建议'
+                        }
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-[#0A66C2] text-center">
+                      📁 请先上传 PDF 文件
+                    </p>
+                  )
+                ) : (
+                  // 截图模式
+                  Object.keys(sectionEntries).length > 0 || resumeContent.trim() ? (
+                    <>
+                      <p className="text-sm text-[#0A66C2] font-medium mb-1">
+                        📋 截图内容已分析
+                      </p>
+                      <p className="text-xs text-[#0A66C2]">
+                        点击下方「优化」按钮生成LinkedIn优化建议
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-[#0A66C2] text-center">
+                      📸 请先捕获 LinkedIn 页面截图
+                    </p>
+                  )
+                )}
               </div>
             )}
           </div>
