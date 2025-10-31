@@ -147,6 +147,7 @@ function App() {
   const [sectionEntries, setSectionEntries] = useState<SectionEntriesMap>({});
   const [sectionEntryIndex, setSectionEntryIndex] = useState<Partial<Record<SectionType, number>>>({});
   const [isPdfSource, setIsPdfSource] = useState(false);
+  const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 保存完整PDF文本，用于AI智能分析
 
   // 结构化优化结果状态
   const [structuredResult, setStructuredResult] = useState<any>(null);
@@ -189,6 +190,7 @@ function App() {
   const handlePDFTextExtracted = (text: string, fileName: string) => {
     const cleanedText = text.trim();
     setUploadedFileName(fileName);
+    setFullPdfText(cleanedText); // 🆕 保存完整PDF文本
 
     const entries = splitResumeSections(cleanedText);
     setSectionEntries(entries);
@@ -278,10 +280,15 @@ function App() {
     setStructuredResult(null);
 
     try {
+      // 🆕 智能内容选择：如果当前字段无内容，使用完整PDF文本让AI自动分析
+      const contentToOptimize = resumeContent.trim()
+        ? resumeContent
+        : (isPdfSource && fullPdfText ? fullPdfText : resumeContent);
+
       // 使用结构化prompt（返回JSON）
       const prompt = useStructuredOutput
-        ? generateStructuredPrompt(currentSection, resumeContent, jobDescription)
-        : generatePrompt(currentSection, resumeContent, jobDescription);
+        ? generateStructuredPrompt(currentSection, contentToOptimize, jobDescription)
+        : generatePrompt(currentSection, contentToOptimize, jobDescription);
 
       console.log('使用的prompt类型:', useStructuredOutput ? '结构化' : '传统');
 
@@ -462,6 +469,7 @@ function App() {
     setSectionEntryIndex({});
     setOptimizedCache({}); // 清空优化缓存
     setStructuredResult(null);
+    setFullPdfText(''); // 清空完整PDF文本
 
     if (mode === 'screenshot') {
       // 切换到截图模式，清空之前的内容提示
@@ -660,8 +668,8 @@ function App() {
                   </span>
                 </div>
               ) : (
-                <div className="mb-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                  未在 PDF 中识别到该部分内容，可手动填写或切换其他部分。
+                <div className="mb-2 p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded text-xs text-[#0A66C2]">
+                  💡 AI 将智能分析完整 PDF 内容，自动识别与该字段相关的信息
                 </div>
               )
             )}
