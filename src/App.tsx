@@ -152,6 +152,9 @@ function App() {
   const [structuredResult, setStructuredResult] = useState<any>(null);
   const useStructuredOutput = true; // 总是使用结构化输出
 
+  // 🆕 优化结果缓存状态 (问题#5 - 自动缓存，支持快速切换查看)
+  const [optimizedCache, setOptimizedCache] = useState<Partial<Record<SectionType, any>>>({});
+
   // 隐私同意状态
   const [hasConsent, setHasConsent] = useState<boolean | null>(null); // null = 未检查, false = 未同意, true = 已同意
   const [showConsentModal, setShowConsentModal] = useState(false);
@@ -213,6 +216,18 @@ function App() {
   const handleSectionChange = (newSection: SectionType) => {
     setCurrentSection(newSection);
 
+    // 🆕 优先从缓存读取优化结果（问题#5）
+    const cachedResult = optimizedCache[newSection];
+    if (cachedResult) {
+      setStructuredResult(cachedResult);
+      setOptimizedText(''); // 清空旧的文本格式
+    } else {
+      setStructuredResult(null);
+      if (optimizedText && !optimizedText.includes('等待') && !optimizedText.includes('PDF')) {
+        setOptimizedText('字段类型已更改，请重新优化...');
+      }
+    }
+
     if (isPdfSource) {
       const entries = sectionEntries[newSection];
       if (entries && entries.length > 0) {
@@ -228,10 +243,6 @@ function App() {
       } else {
         setResumeContent('');
       }
-    }
-
-    if (optimizedText && !optimizedText.includes('等待') && !optimizedText.includes('PDF')) {
-      setOptimizedText('字段类型已更改，请重新优化...');
     }
   };
 
@@ -290,6 +301,12 @@ function App() {
 
         setStructuredResult(parsedData);
         setOptimizedText(''); // 清空旧的文本格式
+
+        // 🆕 将结果存入缓存（问题#5）
+        setOptimizedCache((prev) => ({
+          ...prev,
+          [currentSection]: parsedData
+        }));
 
       } else {
         // 传统文本格式
@@ -443,6 +460,8 @@ function App() {
     setIsPdfSource(false);
     setSectionEntries({});
     setSectionEntryIndex({});
+    setOptimizedCache({}); // 清空优化缓存
+    setStructuredResult(null);
 
     if (mode === 'screenshot') {
       // 切换到截图模式，清空之前的内容提示
@@ -647,33 +666,34 @@ function App() {
               )
             )}
 
-            <textarea
-              value={resumeContent}
-              onChange={(e) => {
-                const value = e.target.value;
-                setResumeContent(value);
-                if (isPdfSource && hasExtractedEntries) {
-                  setSectionEntries((prev) => {
-                    const currentEntries = prev[currentSection];
-                    if (!currentEntries) {
-                      return prev;
-                    }
-                    const updated = [...currentEntries];
-                    updated[activeEntryIndex] = value;
-                    return {
-                      ...prev,
-                      [currentSection]: updated
-                    };
-                  });
-                }
-              }}
-              rows={config.rows}
-              maxLength={config.maxLength}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#0A66C2] focus:border-[#0A66C2] transition-all"
-              placeholder={config.placeholder}
-            />
-            {/* 字符计数 */}
-            <CharacterCount content={resumeContent} sectionType={currentSection} />
+            {/* 🎯 优化：仅在手动输入模式下显示textarea */}
+            {inputMode === 'manual' ? (
+              <>
+                <textarea
+                  value={resumeContent}
+                  onChange={(e) => setResumeContent(e.target.value)}
+                  rows={config.rows}
+                  maxLength={config.maxLength}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#0A66C2] focus:border-[#0A66C2] transition-all"
+                  placeholder={config.placeholder}
+                />
+                {/* 字符计数 */}
+                <CharacterCount content={resumeContent} sectionType={currentSection} />
+              </>
+            ) : (
+              /* PDF/截图模式：显示提示，不显示编辑框 */
+              <div className="mt-2 p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+                <p className="text-sm text-[#0A66C2] font-medium mb-1">
+                  📋 {inputMode === 'pdf' ? 'PDF内容已提取' : '截图内容已分析'}
+                </p>
+                <p className="text-xs text-[#0A66C2]">
+                  {isPdfSource && hasExtractedEntries
+                    ? `当前显示：第 ${activeEntryIndex + 1} 段（共 ${entriesForCurrentSection.length} 段）`
+                    : '点击下方「优化」按钮生成LinkedIn优化建议'
+                  }
+                </p>
+              </div>
+            )}
           </div>
         );
       })()}
