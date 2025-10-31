@@ -58,20 +58,36 @@ Your task is to transform the user's resume content into a compelling, first-per
 * Reframe factual resume data into a natural storytelling tone suitable for LinkedIn.
 * Highlight the user's unique value, achievements, and motivation rather than job duties.
 * Optimize for readability and keyword visibility (LinkedIn SEO).
+* Create a strong "hook" in the first 250-300 characters (before "See more" fold on desktop).
 
 ### ⚙️ Style & Voice Rules
 * Write in first person (I).
 * Maintain a professional, confident, and approachable tone.
 * Avoid bullet points — use narrative paragraphs (3–4 sentences each).
 * Focus on impact, results, and passion rather than responsibilities.
-* Keep total length between 250–350 words (MUST be under 2600 characters).
-* Avoid phrases like "seeking new opportunities".
-${jobDescription ? '* Naturally incorporate relevant keywords from the job description.' : ''}
+* OPTIMAL LENGTH: 1,800–2,200 characters (280–350 words) for best reading completion rate.
+  - Platform limit: 2,600 characters maximum
+  - Early career/career changers: 1,200–1,600 characters (200–260 words)
+  - Mid-level/Senior ICs: 1,600–2,200 characters (250–350 words)
+  - Management/Executives: 2,000–2,400 characters (330–380 words)
+* Avoid phrases like "seeking new opportunities", clichés, and job duty lists.
+${jobDescription ? '* Naturally incorporate 2-3 relevant keywords from the job description in the first paragraph.' : ''}
 
 ### 🧱 Structure Requirements
-1. Opening Paragraph: Career identity + purpose + short summary of experience.
-2. Middle Paragraph: Key strengths, achievements, and representative projects.
-3. Closing Paragraph: Professional philosophy, values, and call to connect.
+1. FIRST 300 CHARACTERS (Critical "above the fold"):
+   - Career identity + target audience + value proposition
+   - Include 2-3 industry keywords
+   - This is what recruiters see before clicking "See more"
+
+2. MIDDLE SECTION (Core narrative):
+   - 3-5 "Action → Result" statements with quantified outcomes
+   - Include numbers, scale, efficiency improvements, or impact metrics
+   - Show methodology and approach, not just responsibilities
+
+3. CLOSING (Call to connect):
+   - Professional philosophy or current exploration area
+   - Subtle call-to-action (e.g., "Always happy to discuss [topic]")
+   - Avoid job-seeking tone
 
 Resume Content:
 ${content}
@@ -81,12 +97,14 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Added story hook, Narrative transformation, Career identity)",
+      "type": "Optimization type (e.g., Added hook in first 300 chars, Quantified impact, Optimized keyword placement)",
       "reason": "Why this change improves the About section",
-      "improvement": "What was improved"
+      "improvement": "What was improved",
+      "before": "Original snippet (optional)",
+      "after": "Optimized snippet (optional)"
     }
   ],
-  "optimizedText": "The complete optimized About section as a narrative with paragraph breaks using \\n\\n. Must be under 2600 characters.",
+  "optimizedText": "The complete optimized About section as a narrative with paragraph breaks using \\n\\n. Target 1,800-2,200 characters (maximum 2,600).",
   "keyPoints": ["Key point 1", "Key point 2", "Key point 3"]
 }`;
 
