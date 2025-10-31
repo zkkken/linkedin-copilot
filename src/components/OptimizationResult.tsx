@@ -281,50 +281,60 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             )}
           </div>
 
-          <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
-            <p className="text-sm text-[#0A66C2] font-medium mb-2">
-              📋 以下字段可直接复制到LinkedIn工作经历编辑页面
-            </p>
-            <p className="text-xs text-[#0A66C2]">
-              每个字段右上角都有独立复制按钮，方便逐个粘贴
-            </p>
-          </div>
+          <TabButtons />
 
-          <StructuredField
-            label="职位头衔 (Title)"
-            value={activeExperience.title}
-            maxLength={100}
-            icon="🎯"
-          />
+          {activeTab === 'final' && (
+            <>
+              <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+                <p className="text-sm text-[#0A66C2] font-medium mb-2">
+                  📋 以下字段可直接复制到LinkedIn工作经历编辑页面
+                </p>
+                <p className="text-xs text-[#0A66C2]">
+                  每个字段右上角都有独立复制按钮，方便逐个粘贴
+                </p>
+              </div>
 
-          <StructuredField
-            label="职位性质 (Employment Type)"
-            value={activeExperience.employmentType}
-            icon="⏰"
-          />
+              <StructuredField
+                label="职位头衔 (Title)"
+                value={activeExperience.title}
+                maxLength={100}
+                icon="🎯"
+              />
 
-          <StructuredField
-            label="公司名称 (Company)"
-            value={activeExperience.company}
-            maxLength={100}
-            icon="🏢"
-          />
+              <StructuredField
+                label="职位性质 (Employment Type)"
+                value={activeExperience.employmentType}
+                icon="⏰"
+              />
 
-          {activeExperience.location && (
-            <StructuredField
-              label="地点 (Location)"
-              value={activeExperience.location}
-              icon="📍"
-            />
+              <StructuredField
+                label="公司名称 (Company)"
+                value={activeExperience.company}
+                maxLength={100}
+                icon="🏢"
+              />
+
+              {activeExperience.location && (
+                <StructuredField
+                  label="地点 (Location)"
+                  value={activeExperience.location}
+                  icon="📍"
+                />
+              )}
+
+              <StructuredField
+                label="工作描述 (Description)"
+                value={activeExperience.description}
+                maxLength={2000}
+                icon="📄"
+                multiline
+              />
+            </>
           )}
 
-          <StructuredField
-            label="工作描述 (Description)"
-            value={activeExperience.description}
-            maxLength={2000}
-            icon="📄"
-            multiline
-          />
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={activeExperience.suggestions || []} />
+          )}
         </div>
       );
     }
@@ -339,34 +349,45 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
               优化后的技能分类
             </h3>
           </div>
-          {skillsData.categories?.map((category, catIndex) => (
-            <div key={catIndex} className="p-4 bg-white border-2 border-gray-200 rounded-lg">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-bold text-gray-800">{category.name}</h4>
-                <button
-                  onClick={() =>
-                    navigator.clipboard.writeText(category.skills.join(', '))
-                  }
-                  className="p-1.5 rounded bg-[#EAF3FF] hover:bg-[#D8EAFE] text-[#0A66C2] transition-colors text-xs"
-                  title="复制此类别所有技能"
-                >
-                  复制全部
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {category.skills.map((skill, skillIndex) => (
-                  <span
-                    key={skillIndex}
-                    className="px-3 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded-full text-xs font-medium cursor-pointer hover:bg-[#C6DFF8] transition-colors"
-                    onClick={() => navigator.clipboard.writeText(skill)}
-                    title="点击复制"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
+
+          <TabButtons />
+
+          {activeTab === 'final' && (
+            <>
+              {skillsData.categories?.map((category, catIndex) => (
+                <div key={catIndex} className="p-4 bg-white border-2 border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold text-gray-800">{category.name}</h4>
+                    <button
+                      onClick={() =>
+                        navigator.clipboard.writeText(category.skills.join(', '))
+                      }
+                      className="p-1.5 rounded bg-[#EAF3FF] hover:bg-[#D8EAFE] text-[#0A66C2] transition-colors text-xs"
+                      title="复制此类别所有技能"
+                    >
+                      复制全部
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {category.skills.map((skill, skillIndex) => (
+                      <span
+                        key={skillIndex}
+                        className="px-3 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded-full text-xs font-medium cursor-pointer hover:bg-[#C6DFF8] transition-colors"
+                        onClick={() => navigator.clipboard.writeText(skill)}
+                        title="点击复制"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={skillsData.suggestions || []} />
+          )}
         </div>
       );
 
@@ -381,51 +402,61 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             </h3>
           </div>
 
-          <StructuredField
-            label="学位 (Degree)"
-            value={educationData.degree}
-            maxLength={100}
-            icon="📚"
-          />
+          <TabButtons />
 
-          <StructuredField
-            label="学校 (School)"
-            value={educationData.school}
-            maxLength={100}
-            icon="🏫"
-          />
+          {activeTab === 'final' && (
+            <>
+              <StructuredField
+                label="学位 (Degree)"
+                value={educationData.degree}
+                maxLength={100}
+                icon="📚"
+              />
 
-          {educationData.fieldOfStudy && (
-            <StructuredField
-              label="专业领域 (Field of Study)"
-              value={educationData.fieldOfStudy}
-              icon="🔬"
-            />
+              <StructuredField
+                label="学校 (School)"
+                value={educationData.school}
+                maxLength={100}
+                icon="🏫"
+              />
+
+              {educationData.fieldOfStudy && (
+                <StructuredField
+                  label="专业领域 (Field of Study)"
+                  value={educationData.fieldOfStudy}
+                  icon="🔬"
+                />
+              )}
+
+              {educationData.grade && (
+                <StructuredField
+                  label="成绩 (Grade)"
+                  value={educationData.grade}
+                  icon="⭐"
+                />
+              )}
+
+              <StructuredField
+                label="亮点 (Highlights)"
+                value={educationData.highlights}
+                maxLength={600}
+                icon="✨"
+                multiline
+              />
+
+              {educationData.activities && (
+                <StructuredField
+                  label="课外活动 (Activities)"
+                  value={educationData.activities}
+                  icon="🎯"
+                  multiline
+                />
+              )}
+            </>
           )}
 
-          {educationData.grade && (
-            <StructuredField
-              label="成绩 (Grade)"
-              value={educationData.grade}
-              icon="⭐"
-            />
-          )}
-
-          <StructuredField
-            label="亮点 (Highlights)"
-            value={educationData.highlights}
-            maxLength={600}
-            icon="✨"
-            multiline
-          />
-
-          {educationData.activities && (
-            <StructuredField
-              label="课外活动 (Activities)"
-              value={educationData.activities}
-              icon="🎯"
-              multiline
-            />
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={educationData.suggestions || []} />
           )}
         </div>
       );
@@ -441,43 +472,53 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             </h3>
           </div>
 
-          <StructuredField
-            label="证书名称 (Name)"
-            value={certData.name}
-            maxLength={100}
-            icon="📋"
-          />
+          <TabButtons />
 
-          <StructuredField
-            label="颁发机构 (Organization)"
-            value={certData.organization}
-            maxLength={100}
-            icon="🏢"
-          />
+          {activeTab === 'final' && (
+            <>
+              <StructuredField
+                label="证书名称 (Name)"
+                value={certData.name}
+                maxLength={100}
+                icon="📋"
+              />
 
-          {certData.issueDate && (
-            <StructuredField
-              label="颁发日期 (Issue Date)"
-              value={certData.issueDate}
-              icon="📅"
-            />
+              <StructuredField
+                label="颁发机构 (Organization)"
+                value={certData.organization}
+                maxLength={100}
+                icon="🏢"
+              />
+
+              {certData.issueDate && (
+                <StructuredField
+                  label="颁发日期 (Issue Date)"
+                  value={certData.issueDate}
+                  icon="📅"
+                />
+              )}
+
+              {certData.credentialId && (
+                <StructuredField
+                  label="证书ID (Credential ID)"
+                  value={certData.credentialId}
+                  icon="🔖"
+                />
+              )}
+
+              <StructuredField
+                label="适用场景/能力说明 (Description)"
+                value={certData.description}
+                maxLength={200}
+                icon="💡"
+                multiline
+              />
+            </>
           )}
 
-          {certData.credentialId && (
-            <StructuredField
-              label="证书ID (Credential ID)"
-              value={certData.credentialId}
-              icon="🔖"
-            />
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={certData.suggestions || []} />
           )}
-
-          <StructuredField
-            label="适用场景/能力说明 (Description)"
-            value={certData.description}
-            maxLength={200}
-            icon="💡"
-            multiline
-          />
         </div>
       );
 
@@ -492,51 +533,61 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             </h3>
           </div>
 
-          <StructuredField
-            label="项目名称 (Name)"
-            value={projectData.name}
-            maxLength={100}
-            icon="📌"
-          />
+          <TabButtons />
 
-          {projectData.role && (
-            <StructuredField
-              label="项目角色 (Role)"
-              value={projectData.role}
-              icon="👤"
-            />
+          {activeTab === 'final' && (
+            <>
+              <StructuredField
+                label="项目名称 (Name)"
+                value={projectData.name}
+                maxLength={100}
+                icon="📌"
+              />
+
+              {projectData.role && (
+                <StructuredField
+                  label="项目角色 (Role)"
+                  value={projectData.role}
+                  icon="👤"
+                />
+              )}
+
+              {projectData.date && (
+                <StructuredField
+                  label="项目时间 (Date)"
+                  value={projectData.date}
+                  icon="📅"
+                />
+              )}
+
+              <StructuredField
+                label="项目描述 (Description)"
+                value={projectData.description}
+                maxLength={1000}
+                icon="📄"
+                multiline
+              />
+
+              {projectData.technologies && projectData.technologies.length > 0 && (
+                <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+                  <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">🛠️ 技术栈</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {projectData.technologies.map((tech, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded text-xs font-medium"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          {projectData.date && (
-            <StructuredField
-              label="项目时间 (Date)"
-              value={projectData.date}
-              icon="📅"
-            />
-          )}
-
-          <StructuredField
-            label="项目描述 (Description)"
-            value={projectData.description}
-            maxLength={1000}
-            icon="📄"
-            multiline
-          />
-
-          {projectData.technologies && projectData.technologies.length > 0 && (
-            <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
-              <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">🛠️ 技术栈</h4>
-              <div className="flex flex-wrap gap-2">
-                {projectData.technologies.map((tech, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded text-xs font-medium"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </div>
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={projectData.suggestions || []} />
           )}
         </div>
       );
@@ -552,40 +603,50 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             </h3>
           </div>
 
-          <StructuredField
-            label="标题 (Title)"
-            value={publicationData.title}
-            maxLength={100}
-            icon="📖"
-          />
+          <TabButtons />
 
-          <StructuredField
-            label="出版商/平台 (Publisher)"
-            value={publicationData.publisher}
-            maxLength={100}
-            icon="🏢"
-          />
+          {activeTab === 'final' && (
+            <>
+              <StructuredField
+                label="标题 (Title)"
+                value={publicationData.title}
+                maxLength={100}
+                icon="📖"
+              />
 
-          {publicationData.date && (
-            <StructuredField
-              label="发表日期 (Date)"
-              value={publicationData.date}
-              icon="📅"
-            />
+              <StructuredField
+                label="出版商/平台 (Publisher)"
+                value={publicationData.publisher}
+                maxLength={100}
+                icon="🏢"
+              />
+
+              {publicationData.date && (
+                <StructuredField
+                  label="发表日期 (Date)"
+                  value={publicationData.date}
+                  icon="📅"
+                />
+              )}
+
+              <StructuredField
+                label="简介 (Description)"
+                value={publicationData.description}
+                maxLength={500}
+                icon="📝"
+                multiline
+              />
+
+              {publicationData.url && (
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded">
+                  <p className="text-xs text-gray-600">🔗 URL: {publicationData.url}</p>
+                </div>
+              )}
+            </>
           )}
 
-          <StructuredField
-            label="简介 (Description)"
-            value={publicationData.description}
-            maxLength={500}
-            icon="📝"
-            multiline
-          />
-
-          {publicationData.url && (
-            <div className="p-3 bg-gray-50 border border-gray-200 rounded">
-              <p className="text-xs text-gray-600">🔗 URL: {publicationData.url}</p>
-            </div>
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={publicationData.suggestions || []} />
           )}
         </div>
       );
@@ -601,35 +662,45 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             </h3>
           </div>
 
-          <StructuredField
-            label="奖项名称 (Title)"
-            value={awardData.title}
-            maxLength={100}
-            icon="🏅"
-          />
+          <TabButtons />
 
-          <StructuredField
-            label="颁发机构 (Issuer)"
-            value={awardData.issuer}
-            maxLength={100}
-            icon="🏢"
-          />
+          {activeTab === 'final' && (
+            <>
+              <StructuredField
+                label="奖项名称 (Title)"
+                value={awardData.title}
+                maxLength={100}
+                icon="🏅"
+              />
 
-          {awardData.date && (
-            <StructuredField
-              label="获奖日期 (Date)"
-              value={awardData.date}
-              icon="📅"
-            />
+              <StructuredField
+                label="颁发机构 (Issuer)"
+                value={awardData.issuer}
+                maxLength={100}
+                icon="🏢"
+              />
+
+              {awardData.date && (
+                <StructuredField
+                  label="获奖日期 (Date)"
+                  value={awardData.date}
+                  icon="📅"
+                />
+              )}
+
+              <StructuredField
+                label="获奖原因/意义 (Description)"
+                value={awardData.description}
+                maxLength={300}
+                icon="✨"
+                multiline
+              />
+            </>
           )}
 
-          <StructuredField
-            label="获奖原因/意义 (Description)"
-            value={awardData.description}
-            maxLength={300}
-            icon="✨"
-            multiline
-          />
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={awardData.suggestions || []} />
+          )}
         </div>
       );
 
@@ -644,43 +715,53 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             </h3>
           </div>
 
-          <StructuredField
-            label="志愿角色 (Role)"
-            value={volunteerData.role}
-            maxLength={100}
-            icon="👤"
-          />
+          <TabButtons />
 
-          <StructuredField
-            label="组织名称 (Organization)"
-            value={volunteerData.organization}
-            maxLength={100}
-            icon="🏢"
-          />
+          {activeTab === 'final' && (
+            <>
+              <StructuredField
+                label="志愿角色 (Role)"
+                value={volunteerData.role}
+                maxLength={100}
+                icon="👤"
+              />
 
-          {volunteerData.cause && (
-            <StructuredField
-              label="公益领域 (Cause)"
-              value={volunteerData.cause}
-              icon="💚"
-            />
+              <StructuredField
+                label="组织名称 (Organization)"
+                value={volunteerData.organization}
+                maxLength={100}
+                icon="🏢"
+              />
+
+              {volunteerData.cause && (
+                <StructuredField
+                  label="公益领域 (Cause)"
+                  value={volunteerData.cause}
+                  icon="💚"
+                />
+              )}
+
+              {volunteerData.date && (
+                <StructuredField
+                  label="时间 (Date)"
+                  value={volunteerData.date}
+                  icon="📅"
+                />
+              )}
+
+              <StructuredField
+                label="经历描述 (Description)"
+                value={volunteerData.description}
+                maxLength={600}
+                icon="📄"
+                multiline
+              />
+            </>
           )}
 
-          {volunteerData.date && (
-            <StructuredField
-              label="时间 (Date)"
-              value={volunteerData.date}
-              icon="📅"
-            />
+          {activeTab === 'suggestions' && (
+            <SuggestionsView suggestions={volunteerData.suggestions || []} />
           )}
-
-          <StructuredField
-            label="经历描述 (Description)"
-            value={volunteerData.description}
-            maxLength={600}
-            icon="📄"
-            multiline
-          />
         </div>
       );
 
