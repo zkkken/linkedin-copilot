@@ -18,9 +18,6 @@ export type SectionType =
   | 'publications'             // Accomplishments 子分区
   | 'honors-awards'            // 官方: Honors & awards (Accomplishments 子分区)
   | 'volunteer-experience'     // 官方: Volunteer experience
-  | 'recommendations'
-  | 'featured'                 // 新增: Featured (精选内容)
-  | 'activity'                 // 新增: Activity (动态摘要)
   | 'general';
 
 /**

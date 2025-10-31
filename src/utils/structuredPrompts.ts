@@ -68,7 +68,7 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 }`;
 
     case 'experience':
-      return `You are a LinkedIn work experience optimization expert. Structure this work experience for maximum impact.
+      return `You are a LinkedIn work experience optimization expert. Structure each work experience entry for maximum impact.
 
 STRICT RULES:
 1. Title: MUST be under 100 characters
@@ -80,7 +80,8 @@ STRICT RULES:
 7. Lead with action verbs (Led, Spearheaded, Drove, Delivered, etc.)
 8. Quantify results (numbers, %, timeframes)
 9. NO markdown formatting (**, ##, etc.) - plain text only
-${jobDescription ? '10. Incorporate 5+ keywords from job description' : ''}
+10. If multiple roles/positions/projects are detected, optimize EACH ONE separately
+${jobDescription ? '11. Incorporate 5+ keywords from job description' : ''}
 
 Work Experience Content:
 ${content}
@@ -88,11 +89,15 @@ ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
-  "title": "Job title (max 100 chars)",
-  "employmentType": "Full-time",
-  "company": "Company name (max 100 chars)",
-  "location": "City, Country (optional)",
-  "description": "• Achievement bullet 1 with quantified results\\n• Achievement bullet 2 with STAR method\\n• Achievement bullet 3 showing business impact\\n• Achievement bullet 4 with specific numbers"
+  "experiences": [
+    {
+      "title": "Job title (max 100 chars)",
+      "employmentType": "Full-time",
+      "company": "Company name (max 100 chars)",
+      "location": "City, Country (optional)",
+      "description": "• Achievement bullet 1 with quantified results\\n• Achievement bullet 2 with STAR method\\n• Achievement bullet 3 showing business impact\\n• Achievement bullet 4 with specific numbers"
+    }
+  ]
 }`;
 
     case 'skills':
@@ -295,111 +300,17 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
   "description": "Mentor underrepresented youth in software development through weekly coding workshops.\\n\\n• Designed curriculum covering web development fundamentals (HTML, CSS, JavaScript)\\n• Mentored 45+ students, with 78% completing the program\\n• 15 students secured internships at tech companies\\n• Organized 3 hackathons with 200+ participants"
 }`;
 
-    case 'recommendations':
-      return `You are a LinkedIn recommendations analyst. Analyze existing recommendations and provide a concise summary of key themes.
-
-IMPORTANT: DO NOT generate fake recommendations. Only summarize what already exists.
-
-STRICT RULES:
-1. Summary: MUST be under 300 characters
-   - Extract 2-3 core strengths mentioned across recommendations
-   - Use third-person perspective
-   - Be specific, not generic
-2. Key Themes: Array of 3-5 recurring themes or strengths
-3. Note: Always include acknowledgment that this is based on existing recommendations
-4. NO markdown formatting - plain text only
-
-Existing Recommendations:
-${content}
-${jobContext}
-
-OUTPUT FORMAT - Return ONLY valid JSON, no other text:
-{
-  "summary": "Consistently praised for technical leadership and mentorship. Multiple colleagues highlight ability to break down complex problems and empower junior developers. Known for delivering high-quality code under tight deadlines.",
-  "keyThemes": ["Technical Leadership", "Mentorship", "Problem Solving", "Code Quality", "Collaboration"],
-  "note": "Summary based on existing recommendations from colleagues and managers"
-}`;
-
-    case 'featured':
-      return `You are a LinkedIn Featured content expert. Optimize featured items to clearly communicate their value and drive engagement.
-
-STRICT RULES:
-1. Items: Array of 2-4 featured items
-2. Each item has:
-   - Title: Concise title (max 100 chars)
-   - Description: Value proposition in 1 sentence (max 180 chars total for title + description)
-   - Type: Optional (e.g., "Article", "Project", "Media", "Link")
-3. Focus on:
-   - What makes this worth featuring
-   - What value it provides to viewers
-   - Call-to-action implications (e.g., "learn more", "see results")
-4. NO markdown formatting - plain text only
-${jobDescription ? '5. Emphasize items relevant to target role' : ''}
-
-Featured Content:
-${content}
-${jobContext}
-
-OUTPUT FORMAT - Return ONLY valid JSON, no other text:
-{
-  "items": [
-    {
-      "title": "Building Scalable Microservices: Best Practices",
-      "description": "Comprehensive guide based on production experience scaling systems to 1M+ users. Includes architecture diagrams and code samples.",
-      "type": "Article"
-    },
-    {
-      "title": "Open Source Contribution: React Performance Library",
-      "description": "Contributed core optimization features now used by 50K+ developers. Reduced bundle size by 40%.",
-      "type": "Project"
-    }
-  ]
-}`;
-
-    case 'activity':
-      return `You are a LinkedIn Activity summarizer. Create a concise summary of recent LinkedIn activity that showcases professional engagement.
-
-IMPORTANT: DO NOT fabricate posts or activity. Only summarize what is provided.
-
-STRICT RULES:
-1. Summary: MUST be under 200 characters
-   - Overall theme of recent activity
-   - Areas of professional focus
-   - Engagement level (if mentioned)
-2. Top Posts: Array of 2-3 most impactful posts
-   - Title: 1-sentence summary of the post (max 100 chars)
-   - Engagement: Optional (likes, comments, shares if provided)
-3. Note: Acknowledge this is based on existing activity, no fabrication
-4. NO markdown formatting - plain text only
-
-Recent Activity:
-${content}
-${jobContext}
-
-OUTPUT FORMAT - Return ONLY valid JSON, no other text:
-{
-  "summary": "Actively shares insights on cloud architecture and DevOps best practices. Engages with industry leaders on emerging technologies and team leadership.",
-  "topPosts": [
-    {
-      "title": "5 lessons learned migrating 100+ microservices to Kubernetes",
-      "engagement": "450 reactions, 78 comments"
-    },
-    {
-      "title": "Why technical debt isn't always bad - strategic approach to managing it",
-      "engagement": "320 reactions, 52 comments"
-    }
-  ],
-  "note": "Summary based on existing LinkedIn activity, no content fabricated"
-}`;
-
     case 'general':
     default:
       return `You are a LinkedIn optimization expert. Enhance this content to be more impactful.
 
 RULES:
-1. Use STAR method where applicable
-2. Quantify achievements with numbers
-3. Use strong action verbs
+1. Identify content type first:
+   - For work achievements/projects/volunteer work: Use STAR method (Situation, Task, Action, Result)
+   - For descriptions/summaries: Focus on clarity and impact
+   - For lists (skills, courses): Organize and prioritize
+2. Quantify achievements with numbers where possible
+3. Use strong action verbs (Led, Developed, Achieved, etc.)
 4. Be specific and measurable
 5. Keep it professional and concise
 6. NO markdown formatting (**, ##, etc.) - plain text only
@@ -435,7 +346,7 @@ export const parseStructuredResponse = (
     cleanedText = cleanedText.trim();
 
     // 尝试解析JSON
-    const parsed = JSON.parse(cleanedText);
+    let parsed: any = JSON.parse(cleanedText);
 
     // 验证结构
     switch (sectionType) {
@@ -459,21 +370,54 @@ export const parseStructuredResponse = (
         }
         break;
 
-      case 'experience':
-        if (!parsed.title || !parsed.employmentType || !parsed.company || !parsed.description) {
+      case 'experience': {
+        const candidateArray = Array.isArray(parsed?.experiences)
+          ? parsed.experiences
+          : Array.isArray(parsed)
+          ? parsed
+          : parsed && parsed.title
+          ? [parsed]
+          : [];
+
+        if (!candidateArray || candidateArray.length === 0) {
           throw new Error('Invalid experience structure');
         }
-        // 确保字符限制
-        if (parsed.title.length > 100) {
-          parsed.title = parsed.title.substring(0, 97) + '...';
+
+        const sanitizedExperiences = candidateArray
+          .filter(
+            (item: any) =>
+              item &&
+              typeof item.title === 'string' &&
+              typeof item.company === 'string' &&
+              typeof item.description === 'string'
+          )
+          .map((item: any) => {
+            const experience = { ...item };
+            if (experience.title.length > 100) {
+              experience.title = experience.title.substring(0, 97) + '...';
+            }
+            if (experience.company.length > 100) {
+              experience.company = experience.company.substring(0, 97) + '...';
+            }
+            if (experience.description.length > 2000) {
+              experience.description = experience.description.substring(0, 1997) + '...';
+            }
+            if (experience.location && experience.location.length > 120) {
+              experience.location = experience.location.substring(0, 117) + '...';
+            }
+            if (!experience.employmentType) {
+              experience.employmentType = 'Full-time';
+            }
+            return experience;
+          });
+
+        if (!sanitizedExperiences.length) {
+          throw new Error('Invalid experience structure');
         }
-        if (parsed.company.length > 100) {
-          parsed.company = parsed.company.substring(0, 97) + '...';
-        }
-        if (parsed.description.length > 2000) {
-          parsed.description = parsed.description.substring(0, 1997) + '...';
-        }
+
+        parsed = { experiences: sanitizedExperiences };
         break;
+      }
 
       case 'skills':
         if (!parsed.categories || !Array.isArray(parsed.categories)) {
@@ -571,50 +515,6 @@ export const parseStructuredResponse = (
         }
         if (parsed.description.length > 600) {
           parsed.description = parsed.description.substring(0, 597) + '...';
-        }
-        break;
-
-      case 'recommendations':
-        if (!parsed.summary || !parsed.keyThemes || !parsed.note) {
-          throw new Error('Invalid recommendation structure');
-        }
-        // 确保字符限制
-        if (parsed.summary.length > 300) {
-          parsed.summary = parsed.summary.substring(0, 297) + '...';
-        }
-        break;
-
-      case 'featured':
-        if (!parsed.items || !Array.isArray(parsed.items)) {
-          throw new Error('Invalid featured structure');
-        }
-        // 确保字符限制
-        parsed.items = parsed.items.map((item: any) => {
-          if (item.title && item.title.length > 100) {
-            item.title = item.title.substring(0, 97) + '...';
-          }
-          if (item.description && item.description.length > 180) {
-            item.description = item.description.substring(0, 177) + '...';
-          }
-          return item;
-        });
-        break;
-
-      case 'activity':
-        if (!parsed.summary || !parsed.topPosts || !parsed.note) {
-          throw new Error('Invalid activity structure');
-        }
-        // 确保字符限制
-        if (parsed.summary.length > 200) {
-          parsed.summary = parsed.summary.substring(0, 197) + '...';
-        }
-        if (Array.isArray(parsed.topPosts)) {
-          parsed.topPosts = parsed.topPosts.map((post: any) => {
-            if (post.title && post.title.length > 100) {
-              post.title = post.title.substring(0, 97) + '...';
-            }
-            return post;
-          });
         }
         break;
 

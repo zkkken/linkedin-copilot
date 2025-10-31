@@ -46,7 +46,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ text, disabled = false }
           ? 'bg-green-600 text-white'
           : disabled || !text.trim()
           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
+          : 'bg-[#0A66C2] text-white hover:bg-[#004182] active:scale-95'
       }`}
       title={copied ? '已复制！' : '复制到剪贴板'}
     >

@@ -86,9 +86,9 @@ export const PrivacyConsent: React.FC<PrivacyConsentProps> = ({ onConsent }) => 
         <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 space-y-4">
           {/* 图标 */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-[#EAF3FF] rounded-full flex items-center justify-center">
               <svg
-                className="w-10 h-10 text-blue-600"
+                className="w-10 h-10 text-[#0A66C2]"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -112,9 +112,9 @@ export const PrivacyConsent: React.FC<PrivacyConsentProps> = ({ onConsent }) => 
           <div className="space-y-3 text-sm text-gray-700">
             <p className="leading-relaxed">
               为了提供 AI 优化建议，您输入的内容将通过{' '}
-              <strong className="text-blue-600">Firebase AI Logic</strong>{' '}
+              <strong className="text-[#0A66C2]">Firebase AI Logic</strong>{' '}
               安全传输至{' '}
-              <strong className="text-blue-600">Google Gemini API</strong>{' '}
+              <strong className="text-[#0A66C2]">Google Gemini API</strong>{' '}
               进行分析。
             </p>
 
@@ -186,7 +186,7 @@ export const PrivacyConsent: React.FC<PrivacyConsentProps> = ({ onConsent }) => 
                 href="https://policies.google.com/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
+                className="text-[#0A66C2] hover:underline"
               >
                 Google 隐私政策
               </a>
@@ -203,7 +203,7 @@ export const PrivacyConsent: React.FC<PrivacyConsentProps> = ({ onConsent }) => 
             </button>
             <button
               onClick={handleAgree}
-              className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium shadow-sm"
+              className="flex-1 px-4 py-2.5 bg-[#0A66C2] text-white rounded-md hover:bg-[#004182] transition-colors font-medium shadow-sm"
             >
               我同意
             </button>

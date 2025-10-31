@@ -16,9 +16,9 @@ export const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
           <p className="text-sm text-gray-700">
             这是一个完全符合隐私政策的 LinkedIn 简历优化工具，使用 Google Gemini AI 为您提供专业建议。
           </p>
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-            <p className="text-xs text-blue-800 font-medium">🔒 隐私承诺</p>
-            <p className="text-xs text-blue-700 mt-1">
+        <div className="bg-[#EAF3FF] border-l-4 border-[#0A66C2] p-3 rounded">
+          <p className="text-xs text-[#0A66C2] font-medium">🔒 隐私承诺</p>
+          <p className="text-xs text-[#0A66C2] mt-1">
               所有数据仅在您的浏览器中处理，通过 Firebase AI Logic 安全传输至 Google Gemini API，绝不存储或用于其他目的。
             </p>
           </div>
@@ -71,9 +71,9 @@ export const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
       icon: '📝',
       content: (
         <div className="space-y-3">
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-3 rounded-lg border border-purple-200">
-            <p className="text-sm font-medium text-purple-800 mb-2">方式 1: 上传 PDF 简历</p>
-            <ul className="text-xs text-purple-700 space-y-1 ml-4">
+          <div className="bg-[#EAF3FF] p-3 rounded-lg border border-[#B3D6F2]">
+            <p className="text-sm font-medium text-[#0A66C2] mb-2">方式 1: 上传 PDF 简历</p>
+            <ul className="text-xs text-[#0A66C2] space-y-1 ml-4">
               <li>• 点击「上传 PDF 简历」按钮</li>
               <li>• 选择您的简历文件（5MB以内）</li>
               <li>• AI 将自动识别内容类型</li>
@@ -172,18 +172,18 @@ export const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         {/* 头部 */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 text-white">
+        <div className="bg-[#0A66C2] p-4 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <span className="text-3xl">{steps[currentStep].icon}</span>
               <div>
                 <h2 className="text-lg font-bold">{steps[currentStep].title}</h2>
-                <p className="text-xs text-blue-100">步骤 {currentStep + 1} / {steps.length}</p>
+              <p className="text-xs text-[#EAF3FF]">步骤 {currentStep + 1} / {steps.length}</p>
               </div>
             </div>
             <button
               onClick={handleSkip}
-              className="text-white hover:text-blue-100 transition-colors"
+              className="text-white hover:text-[#EAF3FF] transition-colors"
               aria-label="跳过引导"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +196,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
         {/* 进度条 */}
         <div className="w-full bg-gray-200 h-1">
           <div
-            className="bg-blue-600 h-1 transition-all duration-300"
+            className="bg-[#0A66C2] h-1 transition-all duration-300"
             style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           />
         </div>
@@ -226,9 +226,9 @@ export const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
                 key={index}
                 className={`w-2 h-2 rounded-full transition-all ${
                   index === currentStep
-                    ? 'bg-blue-600 w-6'
+                    ? 'bg-[#0A66C2] w-6'
                     : index < currentStep
-                    ? 'bg-blue-300'
+                    ? 'bg-[#D8EAFE]'
                     : 'bg-gray-300'
                 }`}
               />
@@ -237,7 +237,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({ onClose }) => {
 
           <button
             onClick={handleNext}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-all"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-[#0A66C2] text-white hover:bg-[#004182] transition-all"
           >
             {currentStep === steps.length - 1 ? '开始使用' : '下一步'}
           </button>

@@ -106,33 +106,6 @@ export const SECTION_CONFIGS: Record<SectionType, SectionConfig> = {
     rows: 4,
     icon: '🤝',
   },
-  recommendations: {
-    id: 'recommendations',
-    label: '推荐摘要 (Recommendations Summary)',
-    placeholder: '粘贴您已收到的推荐内容...',
-    description: '提炼已有推荐的关键亮点（不生成新推荐，建议字数上限：300字符）',
-    maxLength: 300,
-    rows: 4,
-    icon: '💬',
-  },
-  featured: {
-    id: 'featured',
-    label: '精选内容 (Featured)',
-    placeholder: '粘贴您的代表作品、文章、项目链接等信息...',
-    description: 'LinkedIn官方：Featured。展示代表作品、链接、媒体，提升转化率（每条建议：标题+价值说明 ≤180字符）',
-    maxLength: 180,
-    rows: 4,
-    icon: '⭐',
-  },
-  activity: {
-    id: 'activity',
-    label: '动态摘要 (Activity)',
-    placeholder: '粘贴您最近的LinkedIn帖子或互动内容...',
-    description: 'LinkedIn官方：Activity。摘要最近发帖中最能代表专业度的内容（不改变原意，不新增事实，建议字数上限：200字符）',
-    maxLength: 200,
-    rows: 4,
-    icon: '📢',
-  },
 };
 
 /**

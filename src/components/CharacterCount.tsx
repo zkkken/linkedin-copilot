@@ -57,7 +57,7 @@ export const CharacterCount: React.FC<CharacterCountProps> = ({ content, section
               ? 'bg-red-500'
               : status === 'warning'
               ? 'bg-amber-500'
-              : 'bg-blue-500'
+              : 'bg-[#0A66C2]'
           }`}
           style={{ width: `${Math.min(percentage, 100)}%` }}
         />

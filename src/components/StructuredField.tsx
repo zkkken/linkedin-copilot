@@ -6,7 +6,7 @@
 
 interface StructuredFieldProps {
   label: string;              // 字段标签（如"职位头衔"）
-  value: string;              // 字段值
+  value?: string;             // 字段值
   maxLength?: number;         // 最大字符数限制（可选）
   icon?: string;              // 可选图标emoji
   multiline?: boolean;        // 是否多行显示
@@ -19,12 +19,13 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
   icon,
   multiline = false
 }) => {
-  const currentLength = value.length;
+  const safeValue = value ?? '';
+  const currentLength = safeValue.length;
   const isOverLimit = maxLength ? currentLength > maxLength : false;
   const isNearLimit = maxLength ? currentLength > maxLength * 0.9 : false;
 
   return (
-    <div className="mb-4 p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+    <div className="mb-4 p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-[#0A66C2] transition-colors">
       {/* 标签和复制按钮 */}
       <div className="flex items-center justify-between mb-2">
         <label className="text-sm font-semibold text-gray-700 flex items-center">
@@ -48,8 +49,8 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
           )}
           {/* 复制按钮（小尺寸） */}
           <button
-            onClick={() => navigator.clipboard.writeText(value)}
-            className="p-1.5 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+            onClick={() => navigator.clipboard.writeText(safeValue)}
+            className="p-1.5 rounded bg-[#EAF3FF] hover:bg-[#D8EAFE] text-[#0A66C2] transition-colors"
             title="复制此字段"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +68,7 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
       {/* 字段内容 */}
       {multiline ? (
         <div className="p-3 bg-gray-50 rounded border border-gray-200 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-          {value.split('\n').map((line, index) => (
+          {safeValue.split('\n').map((line, index) => (
             <p key={index} className={line.startsWith('•') ? 'ml-2 mb-2' : 'mb-2'}>
               {line}
             </p>
@@ -75,7 +76,7 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
         </div>
       ) : (
         <div className="p-3 bg-gray-50 rounded border border-gray-200 text-sm text-gray-800">
-          {value}
+          {safeValue}
         </div>
       )}
 

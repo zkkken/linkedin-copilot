@@ -17,6 +17,123 @@ import { getSectionConfig } from './utils/sectionConfigs';
 import { captureCurrentTab, isLinkedInPage } from './utils/screenshotCapture';
 import type { SectionType } from './types';
 
+type SectionEntriesMap = Partial<Record<SectionType, string[]>>;
+
+const SECTION_KEYWORDS: Record<SectionType, string[]> = {
+  headline: ['headline', 'professional headline', '个人标题', '抬头'],
+  about: ['about', 'summary', 'profile', '自我简介', '关于我'],
+  experience: [
+    'work experience',
+    'professional experience',
+    'experience',
+    'employment history',
+    'career history',
+    '工作经历',
+    '职业经历',
+    '经历'
+  ],
+  education: ['education', 'academic background', '学历', '教育'],
+  'licenses-certifications': ['certifications', 'licenses', '资格证书', '认证', '证书'],
+  skills: ['skills', 'core skills', 'competencies', '技能', '能力'],
+  projects: ['projects', 'project experience', 'project highlights', '项目', '项目经验'],
+  publications: ['publications', 'papers', '发表', '出版物'],
+  'honors-awards': ['awards', 'honors', 'achievements', '荣誉', '奖项'],
+  'volunteer-experience': ['volunteer experience', 'volunteer', '志愿者', '志愿经历'],
+  general: []
+};
+
+const normalizeHeading = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z\u4e00-\u9fa5\s&-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const detectSectionFromLine = (line: string): SectionType | null => {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > 80) return null;
+  if (/[.;！？。!?]/.test(trimmed)) return null;
+
+  const normalized = normalizeHeading(trimmed);
+  if (!normalized) return null;
+
+  for (const [section, keywords] of Object.entries(SECTION_KEYWORDS) as [SectionType, string[]][]) {
+    if (
+      keywords.some(
+        (keyword) =>
+          normalized === keyword ||
+          normalized.startsWith(keyword) ||
+          (keyword.includes(' ') && normalized.includes(keyword))
+      )
+    ) {
+      return section;
+    }
+  }
+  return null;
+};
+
+const splitResumeSections = (text: string): SectionEntriesMap => {
+  const sections: SectionEntriesMap = {};
+  let currentSection: SectionType | null = null;
+  let buffer: string[] = [];
+  let emptyLineCount = 0;
+
+  const pushBuffer = () => {
+    if (!currentSection) return;
+    const combined = buffer.join('\n').trim();
+    if (!combined) {
+      buffer = [];
+      return;
+    }
+    if (!sections[currentSection]) {
+      sections[currentSection] = [];
+    }
+    sections[currentSection]!.push(combined);
+    buffer = [];
+  };
+
+  const lines = text.split(/\r?\n/);
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+    const detected = detectSectionFromLine(line);
+
+    if (detected) {
+      pushBuffer();
+      currentSection = detected;
+      emptyLineCount = 0;
+      continue;
+    }
+
+    if (!currentSection) {
+      continue;
+    }
+
+    if (!line.trim()) {
+      emptyLineCount += 1;
+      if (emptyLineCount >= 2) {
+        pushBuffer();
+        emptyLineCount = 0;
+      } else if (buffer.length && buffer[buffer.length - 1] !== '') {
+        buffer.push('');
+      }
+      continue;
+    }
+
+    emptyLineCount = 0;
+    buffer.push(line);
+  }
+
+  pushBuffer();
+
+  if (!sections.general || sections.general.length === 0) {
+    sections.general = [text.trim()];
+  }
+
+  return sections;
+};
+
 function App() {
   // 状态管理 (用于您的项目)
   const [resumeContent, setResumeContent] = useState('');
@@ -27,6 +144,9 @@ function App() {
 
   // 多字段支持状态
   const [currentSection, setCurrentSection] = useState<SectionType>('general');
+  const [sectionEntries, setSectionEntries] = useState<SectionEntriesMap>({});
+  const [sectionEntryIndex, setSectionEntryIndex] = useState<Partial<Record<SectionType, number>>>({});
+  const [isPdfSource, setIsPdfSource] = useState(false);
 
   // 结构化优化结果状态
   const [structuredResult, setStructuredResult] = useState<any>(null);
@@ -64,22 +184,65 @@ function App() {
 
   // 处理 PDF 文本提取
   const handlePDFTextExtracted = (text: string, fileName: string) => {
-    setResumeContent(text);
+    const cleanedText = text.trim();
     setUploadedFileName(fileName);
-    // 智能检测内容类型
-    const detectedType = detectSectionType(text);
+
+    const entries = splitResumeSections(cleanedText);
+    setSectionEntries(entries);
+
+    const defaultIndexes: Partial<Record<SectionType, number>> = {};
+    (Object.keys(entries) as SectionType[]).forEach((section) => {
+      defaultIndexes[section] = 0;
+    });
+    setSectionEntryIndex(defaultIndexes);
+
+    const detectedType = detectSectionType(cleanedText);
     setCurrentSection(detectedType);
-    // 重置优化结果
+
+    const initialContent =
+      entries[detectedType]?.[0] ??
+      entries.general?.[0] ??
+      cleanedText;
+
+    setResumeContent(initialContent);
+    setIsPdfSource(true);
     setOptimizedText('PDF 已解析，请点击优化按钮...');
   };
 
   // 处理字段类型变更
   const handleSectionChange = (newSection: SectionType) => {
     setCurrentSection(newSection);
-    // 重置优化结果
+
+    if (isPdfSource) {
+      const entries = sectionEntries[newSection];
+      if (entries && entries.length > 0) {
+        const currentIndex = sectionEntryIndex[newSection] ?? 0;
+        const safeIndex = Math.min(currentIndex, entries.length - 1);
+        setSectionEntryIndex((prev) => ({
+          ...prev,
+          [newSection]: safeIndex
+        }));
+        setResumeContent(entries[safeIndex]);
+      } else if (sectionEntries.general && sectionEntries.general.length > 0 && newSection === 'general') {
+        setResumeContent(sectionEntries.general[0]);
+      } else {
+        setResumeContent('');
+      }
+    }
+
     if (optimizedText && !optimizedText.includes('等待') && !optimizedText.includes('PDF')) {
       setOptimizedText('字段类型已更改，请重新优化...');
     }
+  };
+
+  const handleSectionEntrySelect = (section: SectionType, index: number) => {
+    const entries = sectionEntries[section];
+    if (!entries || !entries[index]) return;
+    setSectionEntryIndex((prev) => ({
+      ...prev,
+      [section]: index
+    }));
+    setResumeContent(entries[index]);
   };
 
   // 处理隐私同意
@@ -274,6 +437,13 @@ function App() {
   const handleInputModeChange = (mode: InputMode) => {
     setInputMode(mode);
 
+    // 🔥 关键修复：切换模式时清空所有状态，避免模式间互相干扰
+    setResumeContent('');
+    setUploadedFileName('');
+    setIsPdfSource(false);
+    setSectionEntries({});
+    setSectionEntryIndex({});
+
     if (mode === 'screenshot') {
       // 切换到截图模式，清空之前的内容提示
       setOptimizedText('请点击下方「📸 捕获 LinkedIn 页面」按钮开始分析...');
@@ -285,6 +455,10 @@ function App() {
   };
 
   // 您的 UI 保持不变，因为它符合您的项目需求
+  const entriesForCurrentSection = sectionEntries[currentSection] ?? [];
+  const activeEntryIndex = sectionEntryIndex[currentSection] ?? 0;
+  const hasExtractedEntries = isPdfSource && entriesForCurrentSection.length > 0;
+
   return (
     <>
       {/* 用户引导弹窗 */}
@@ -301,12 +475,12 @@ function App() {
         />
       )}
 
-      <div className="p-5 w-[420px] font-sans max-h-[600px] overflow-y-auto bg-gradient-to-b from-white to-gray-50">
+      <div className="w-[420px] font-sans bg-white border border-gray-200 rounded-2xl shadow-lg p-6">
         {/* 头部 - LinkedIn 风格 */}
         <div className="mb-6 pb-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
+              <div className="w-10 h-10 bg-[#0A66C2] rounded-lg flex items-center justify-center shadow-md">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
@@ -319,7 +493,7 @@ function App() {
             {/* 帮助按钮 */}
             <button
               onClick={() => setShowUserGuide(true)}
-              className="p-2 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-all"
+              className="p-2 rounded-lg text-gray-600 hover:bg-[#EAF3FF] hover:text-[#0A66C2] transition-all"
               title="查看使用指南"
               aria-label="查看使用指南"
             >
@@ -358,9 +532,9 @@ function App() {
 
       {inputMode === 'screenshot' && (
         <div className="mb-4">
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-4">
+          <div className="bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-bold text-purple-900 flex items-center">
+              <h3 className="text-sm font-bold text-[#0A66C2] flex items-center">
                 <span className="text-2xl mr-2">📸</span>
                 LinkedIn 页面截图分析
               </h3>
@@ -369,7 +543,7 @@ function App() {
               </span>
             </div>
 
-            <p className="text-xs text-purple-700 mb-3">
+            <p className="text-xs text-[#0A66C2] mb-3">
               使用 Gemini Vision API 直接分析您的 LinkedIn 页面截图，自动提取内容并提供优化建议。
             </p>
 
@@ -379,7 +553,7 @@ function App() {
               className={`w-full py-3 px-4 rounded-lg text-sm font-semibold transition-all shadow-md flex items-center justify-center space-x-2 ${
                 isLoading || isCapturing
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 active:scale-98'
+                  : 'bg-[#0A66C2] text-white hover:bg-[#004182] active:scale-98'
               }`}
             >
               {isCapturing ? (
@@ -440,12 +614,62 @@ function App() {
               </label>
             </div>
             <p className="text-xs text-gray-500 mb-2">{config.description}</p>
+            {isPdfSource && currentSection !== 'general' && (
+              hasExtractedEntries ? (
+                <div className="mb-2 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    {entriesForCurrentSection.map((_, index) => {
+                      const isActive = index === activeEntryIndex;
+                      return (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => handleSectionEntrySelect(currentSection, index)}
+                          className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                            isActive
+                              ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                              : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                          }`}
+                        >
+                          第 {index + 1} 段
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span className="text-xs text-[#0A66C2]">
+                    自动提取 {entriesForCurrentSection.length} 段
+                  </span>
+                </div>
+              ) : (
+                <div className="mb-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                  未在 PDF 中识别到该部分内容，可手动填写或切换其他部分。
+                </div>
+              )
+            )}
+
             <textarea
               value={resumeContent}
-              onChange={(e) => setResumeContent(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setResumeContent(value);
+                if (isPdfSource && hasExtractedEntries) {
+                  setSectionEntries((prev) => {
+                    const currentEntries = prev[currentSection];
+                    if (!currentEntries) {
+                      return prev;
+                    }
+                    const updated = [...currentEntries];
+                    updated[activeEntryIndex] = value;
+                    return {
+                      ...prev,
+                      [currentSection]: updated
+                    };
+                  });
+                }
+              }}
               rows={config.rows}
               maxLength={config.maxLength}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#0A66C2] focus:border-[#0A66C2] transition-all"
               placeholder={config.placeholder}
             />
             {/* 字符计数 */}
@@ -468,7 +692,7 @@ function App() {
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
           rows={3}
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 text-sm bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-[#0A66C2] focus:border-[#0A66C2] transition-all"
           placeholder="例如：我们正在寻找一位经验丰富的软件工程师，熟练掌握 React、TypeScript、Node.js..."
         />
       </div>
@@ -481,7 +705,7 @@ function App() {
           className={`w-full mt-6 py-3 px-4 rounded-lg text-sm font-semibold transition-all shadow-md ${
             isLoading || !resumeContent.trim()
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 active:scale-98 shadow-blue-200'
+              : 'bg-[#0A66C2] text-white hover:bg-[#004182] active:scale-98 shadow-blue-200'
           }`}
         >
           {isLoading ? (
@@ -500,8 +724,8 @@ function App() {
 
       {/* 截图模式提示 */}
       {inputMode === 'screenshot' && (
-        <div className="mt-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
-          <p className="text-sm text-purple-800 text-center font-semibold">
+        <div className="mt-6 p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+          <p className="text-sm text-[#0A66C2] text-center font-semibold">
             💡 截图模式下，点击上方「📸 捕获 LinkedIn 页面」按钮即可分析
           </p>
         </div>
@@ -510,9 +734,9 @@ function App() {
       {/* 优化结果区域 - 使用新的结构化组件 */}
       <div className="mt-6">
         {isLoading ? (
-          <div className="p-8 rounded-lg border-2 border-blue-200 bg-blue-50">
+          <div className="p-8 rounded-lg border-2 border-[#B3D6F2] bg-[#EAF3FF]">
             <LoadingSpinner />
-            <p className="text-center text-sm text-blue-800 mt-3">
+            <p className="text-center text-sm text-[#0A66C2] mt-3">
               {optimizedText}
             </p>
           </div>
@@ -540,8 +764,8 @@ function App() {
                   <li>4. 请根据实际情况微调内容</li>
                 </ol>
               </div>
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-xs text-blue-800 flex items-start">
+              <div className="p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded-md">
+                <p className="text-xs text-[#0A66C2] flex items-start">
                   <svg className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -555,7 +779,7 @@ function App() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-bold text-gray-900 flex items-center">
-                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 mr-2 text-[#0A66C2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 优化结果
@@ -569,14 +793,14 @@ function App() {
               optimizedText.includes('⚠️')
                 ? 'bg-red-50 border-red-200'
                 : optimizedText.includes('等待') || optimizedText.includes('PDF')
-                ? 'bg-blue-50 border-blue-200'
+                ? 'bg-[#EAF3FF] border-[#B3D6F2]'
                 : 'bg-white border-gray-200 shadow-sm'
             }`}>
               <div className={`text-sm leading-relaxed ${
                 optimizedText.includes('⚠️')
                   ? 'text-red-800'
                   : optimizedText.includes('等待') || optimizedText.includes('PDF')
-                  ? 'text-blue-800'
+                  ? 'text-[#0A66C2]'
                   : 'text-gray-800'
               }`}>
                 {optimizedText.split('\n').map((line, index) => (

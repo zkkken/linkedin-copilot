@@ -70,13 +70,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         className={`w-full py-2.5 px-4 border-2 border-dashed rounded-lg text-sm font-medium transition-all ${
           disabled || isProcessing
             ? 'border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed'
-            : 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-400 cursor-pointer'
+            : 'border-[#0A66C2] bg-[#EAF3FF] text-[#0A66C2] hover:bg-[#D8EAFE] hover:border-[#0A66C2] cursor-pointer'
         }`}
       >
         {isProcessing ? (
           <span className="flex items-center justify-center">
             <svg
-              className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-700"
+              className="animate-spin -ml-1 mr-2 h-4 w-4 text-[#0A66C2]"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -129,7 +129,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-[#0A66C2] h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress.percentage}%` }}
             ></div>
           </div>
@@ -179,9 +179,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       )}
 
       {/* 隐私提示 */}
-      <div className="flex items-start p-3 bg-blue-50 border border-blue-200 rounded-md">
+      <div className="flex items-start p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded-md">
         <svg
-          className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5"
+          className="w-5 h-5 text-[#0A66C2] mr-2 flex-shrink-0 mt-0.5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -193,7 +193,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
           />
         </svg>
-        <p className="text-xs text-blue-800">
+        <p className="text-xs text-[#0A66C2]">
           <strong>隐私保护：</strong>您的简历文件仅在本地浏览器中处理，不会被上传到任何服务器。
         </p>
       </div>

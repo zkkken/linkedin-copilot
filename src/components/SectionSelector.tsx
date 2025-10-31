@@ -35,9 +35,10 @@ export const SectionSelector: React.FC<SectionSelectorProps> = ({
             border border-gray-300 rounded-lg
             text-sm font-medium
             bg-white
-            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            appearance-none
+            focus:ring-2 focus:ring-[#0A66C2] focus:border-[#0A66C2]
             transition-all
-            ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer hover:border-blue-400'}
+            ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer hover:border-[#0A66C2]'}
           `}
         >
           {options.map((option) => (

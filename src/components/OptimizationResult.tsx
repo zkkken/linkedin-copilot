@@ -4,6 +4,7 @@
  * 根据SectionType展示结构化的优化结果
  */
 
+import { useEffect, useState } from 'react';
 import { StructuredField } from './StructuredField';
 import { CopyButton } from './CopyButton';
 import type {
@@ -17,10 +18,7 @@ import type {
   LinkedInProjectStructured,
   LinkedInPublicationStructured,
   LinkedInAwardStructured,
-  LinkedInVolunteerStructured,
-  LinkedInRecommendationStructured,
-  LinkedInFeaturedStructured,
-  LinkedInActivityStructured
+  LinkedInVolunteerStructured
 } from '../types';
 
 interface OptimizationResultProps {
@@ -32,6 +30,12 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
   sectionType,
   data
 }) => {
+  const [activeExperienceIndex, setActiveExperienceIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveExperienceIndex(0);
+  }, [sectionType, data]);
+
   // 如果是降级处理（纯文本）
   if (data?.plainText || data?._fallback) {
     return (
@@ -103,9 +107,9 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             multiline
           />
           {aboutData.keyPoints && aboutData.keyPoints.length > 0 && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="text-sm font-semibold text-blue-900 mb-2">✨ 关键亮点</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
+            <div className="p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+              <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">✨ 关键亮点</h4>
+              <ul className="text-sm text-[#0A66C2] space-y-1">
                 {aboutData.keyPoints.map((point, index) => (
                   <li key={index}>• {point}</li>
                 ))}
@@ -115,63 +119,112 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
         </div>
       );
 
-    case 'experience':
-      const expData = data as LinkedInExperienceStructured;
+    case 'experience': {
+      const experienceCandidates = Array.isArray((data as any)?.experiences)
+        ? (data as any).experiences
+        : Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
+
+      const experienceList = experienceCandidates.filter(
+        (item: any): item is LinkedInExperienceStructured =>
+          item &&
+          typeof item.title === 'string' &&
+          typeof item.company === 'string' &&
+          typeof item.description === 'string'
+      );
+
+      if (!experienceList.length) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            未能获取到结构化的工作经历，请尝试手动选择单段内容后重新优化。
+          </div>
+        );
+      }
+
+      const safeIndex = Math.min(activeExperienceIndex, experienceList.length - 1);
+      const activeExperience = experienceList[safeIndex];
+
       return (
         <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">💼</span>
               优化后的工作经历
             </h3>
+            {experienceList.length > 1 && (
+              <div className="flex flex-wrap gap-2">
+                {experienceList.map((experience: LinkedInExperienceStructured, index: number) => {
+                  const isActive = index === safeIndex;
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setActiveExperienceIndex(index)}
+                      className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                        isActive
+                          ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                          : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                      }`}
+                      title={experience.title || `第 ${index + 1} 段`}
+                    >
+                      第 {index + 1} 段
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-900 font-medium mb-2">
+          <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+            <p className="text-sm text-[#0A66C2] font-medium mb-2">
               📋 以下字段可直接复制到LinkedIn工作经历编辑页面
             </p>
-            <p className="text-xs text-blue-700">
+            <p className="text-xs text-[#0A66C2]">
               每个字段右上角都有独立复制按钮，方便逐个粘贴
             </p>
           </div>
 
           <StructuredField
             label="职位头衔 (Title)"
-            value={expData.title}
+            value={activeExperience.title}
             maxLength={100}
             icon="🎯"
           />
 
           <StructuredField
             label="职位性质 (Employment Type)"
-            value={expData.employmentType}
+            value={activeExperience.employmentType}
             icon="⏰"
           />
 
           <StructuredField
             label="公司名称 (Company)"
-            value={expData.company}
+            value={activeExperience.company}
             maxLength={100}
             icon="🏢"
           />
 
-          {expData.location && (
+          {activeExperience.location && (
             <StructuredField
               label="地点 (Location)"
-              value={expData.location}
+              value={activeExperience.location}
               icon="📍"
             />
           )}
 
           <StructuredField
             label="工作描述 (Description)"
-            value={expData.description}
+            value={activeExperience.description}
             maxLength={2000}
             icon="📄"
             multiline
           />
         </div>
       );
+    }
 
     case 'skills':
       const skillsData = data as LinkedInSkillsStructured;
@@ -191,7 +244,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
                   onClick={() =>
                     navigator.clipboard.writeText(category.skills.join(', '))
                   }
-                  className="p-1.5 rounded bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors text-xs"
+                  className="p-1.5 rounded bg-[#EAF3FF] hover:bg-[#D8EAFE] text-[#0A66C2] transition-colors text-xs"
                   title="复制此类别所有技能"
                 >
                   复制全部
@@ -201,7 +254,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
                 {category.skills.map((skill, skillIndex) => (
                   <span
                     key={skillIndex}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium cursor-pointer hover:bg-blue-200 transition-colors"
+                    className="px-3 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded-full text-xs font-medium cursor-pointer hover:bg-[#C6DFF8] transition-colors"
                     onClick={() => navigator.clipboard.writeText(skill)}
                     title="点击复制"
                   >
@@ -368,13 +421,13 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           />
 
           {projectData.technologies && projectData.technologies.length > 0 && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="text-sm font-semibold text-blue-900 mb-2">🛠️ 技术栈</h4>
+            <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
+              <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">🛠️ 技术栈</h4>
               <div className="flex flex-wrap gap-2">
                 {projectData.technologies.map((tech, index) => (
                   <span
                     key={index}
-                    className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium"
+                    className="px-2 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded text-xs font-medium"
                   >
                     {tech}
                   </span>
@@ -525,144 +578,6 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             icon="📄"
             multiline
           />
-        </div>
-      );
-
-    case 'recommendations':
-      const recommendationData = data as LinkedInRecommendationStructured;
-      return (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">💬</span>
-              推荐摘要
-            </h3>
-          </div>
-
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-900 font-medium mb-2">
-              📌 基于已有推荐的提炼总结
-            </p>
-            <p className="text-xs text-blue-700">
-              {recommendationData.note}
-            </p>
-          </div>
-
-          <StructuredField
-            label="核心摘要 (Summary)"
-            value={recommendationData.summary}
-            maxLength={300}
-            icon="📝"
-            multiline
-          />
-
-          <div className="p-4 bg-white border-2 border-gray-200 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-800 mb-3">🎯 关键主题</h4>
-            <div className="flex flex-wrap gap-2">
-              {recommendationData.keyThemes.map((theme, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"
-                >
-                  {theme}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-
-    case 'featured':
-      const featuredData = data as LinkedInFeaturedStructured;
-      return (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">⭐</span>
-              优化后的精选内容 (Featured)
-            </h3>
-          </div>
-
-          <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-900 font-medium mb-2">
-              ✨ 精选内容是展示代表作的黄金位置
-            </p>
-            <p className="text-xs text-yellow-700">
-              每条内容包含标题和价值说明，总长度建议不超过180字符
-            </p>
-          </div>
-
-          {featuredData.items?.map((item, index) => (
-            <div key={index} className="p-4 bg-white border-2 border-gray-200 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-gray-700">精选项目 {index + 1}</h4>
-                {item.type && (
-                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-                    {item.type}
-                  </span>
-                )}
-              </div>
-
-              <StructuredField
-                label="标题 (Title)"
-                value={item.title}
-                maxLength={100}
-                icon="📌"
-              />
-
-              <StructuredField
-                label="价值说明 (Description)"
-                value={item.description}
-                maxLength={180}
-                icon="💡"
-                multiline
-              />
-            </div>
-          ))}
-        </div>
-      );
-
-    case 'activity':
-      const activityData = data as LinkedInActivityStructured;
-      return (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">📢</span>
-              动态摘要 (Activity)
-            </h3>
-          </div>
-
-          <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 border-2 border-green-200 rounded-lg">
-            <p className="text-sm text-green-900 font-medium mb-2">
-              📊 基于已有LinkedIn动态的总结
-            </p>
-            <p className="text-xs text-green-700">
-              {activityData.note}
-            </p>
-          </div>
-
-          <StructuredField
-            label="整体活跃度摘要 (Summary)"
-            value={activityData.summary}
-            maxLength={200}
-            icon="📝"
-            multiline
-          />
-
-          <div className="p-4 bg-white border-2 border-gray-200 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-800 mb-3">🔥 热门帖子</h4>
-            <div className="space-y-3">
-              {activityData.topPosts?.map((post, index) => (
-                <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm font-medium text-gray-800 mb-1">{post.title}</p>
-                  {post.engagement && (
-                    <p className="text-xs text-gray-600">👍 {post.engagement}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       );
 

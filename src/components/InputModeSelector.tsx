@@ -35,7 +35,7 @@ const modes: ModeConfig[] = [
     icon: '📄',
     description: '上传简历PDF文件',
     badge: '安全',
-    badgeColor: 'bg-blue-100 text-blue-800',
+    badgeColor: 'bg-[#EAF3FF] text-[#0A66C2]',
   },
   {
     id: 'screenshot',
@@ -68,7 +68,7 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
               className={`
                 relative p-3 rounded-lg border-2 transition-all duration-200
                 ${isSelected
-                  ? 'border-blue-500 bg-blue-50 shadow-md'
+                   ? 'border-[#0A66C2] bg-[#EAF3FF] shadow-md'
                   : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }
                 ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
@@ -78,7 +78,7 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
               <div className="flex flex-col items-center space-y-2">
                 <span className="text-2xl">{mode.icon}</span>
                 <div className="text-center">
-                  <p className={`text-xs font-semibold ${isSelected ? 'text-blue-700' : 'text-gray-700'}`}>
+                  <p className={`text-xs font-semibold ${isSelected ? 'text-[#0A66C2]' : 'text-gray-700'}`}>
                     {mode.label}
                   </p>
                   <p className="text-[10px] text-gray-500 mt-1 leading-tight">
@@ -99,7 +99,7 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
               {/* 选中指示器 */}
               {isSelected && (
                 <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-                  <div className="w-8 h-1 bg-blue-500 rounded-full"></div>
+                  <div className="w-8 h-1 bg-[#0A66C2] rounded-full"></div>
                 </div>
               )}
             </button>
