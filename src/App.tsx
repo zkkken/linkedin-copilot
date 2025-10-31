@@ -171,14 +171,87 @@ function App() {
   const [isLinkedIn, setIsLinkedIn] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
 
-  // 检查用户是否是首次使用
+  // 🆕 状态持久化：挂载时恢复状态（问题#2）
   useEffect(() => {
+    const restoreState = async () => {
+      try {
+        const result = await chrome.storage.local.get([
+          'resumeContent',
+          'jobDescription',
+          'currentSection',
+          'inputMode',
+          'sectionEntries',
+          'sectionEntryIndex',
+          'isPdfSource',
+          'fullPdfText',
+          'uploadedFileName',
+          'optimizedCache',
+          'structuredResult',
+          'optimizedText'
+        ]);
+
+        if (result.resumeContent) setResumeContent(result.resumeContent);
+        if (result.jobDescription) setJobDescription(result.jobDescription);
+        if (result.currentSection) setCurrentSection(result.currentSection);
+        if (result.inputMode) setInputMode(result.inputMode);
+        if (result.sectionEntries) setSectionEntries(result.sectionEntries);
+        if (result.sectionEntryIndex) setSectionEntryIndex(result.sectionEntryIndex);
+        if (result.isPdfSource !== undefined) setIsPdfSource(result.isPdfSource);
+        if (result.fullPdfText) setFullPdfText(result.fullPdfText);
+        if (result.uploadedFileName) setUploadedFileName(result.uploadedFileName);
+        if (result.optimizedCache) setOptimizedCache(result.optimizedCache);
+        if (result.structuredResult) setStructuredResult(result.structuredResult);
+        if (result.optimizedText) setOptimizedText(result.optimizedText);
+      } catch (error) {
+        console.error('恢复状态失败:', error);
+      }
+    };
+
+    restoreState();
+
+    // 首次使用引导
     const hasSeenGuide = localStorage.getItem('hasSeenUserGuide');
     if (!hasSeenGuide) {
-      // 首次使用，显示引导
       setShowUserGuide(true);
     }
   }, []);
+
+  // 🆕 状态持久化：保存关键状态（使用debounce避免频繁保存）
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      chrome.storage.local.set({
+        resumeContent,
+        jobDescription,
+        currentSection,
+        inputMode,
+        sectionEntries,
+        sectionEntryIndex,
+        isPdfSource,
+        fullPdfText,
+        uploadedFileName,
+        optimizedCache,
+        structuredResult,
+        optimizedText
+      }).catch(error => {
+        console.error('保存状态失败:', error);
+      });
+    }, 1000); // 1秒debounce
+
+    return () => clearTimeout(saveTimeout);
+  }, [
+    resumeContent,
+    jobDescription,
+    currentSection,
+    inputMode,
+    sectionEntries,
+    sectionEntryIndex,
+    isPdfSource,
+    fullPdfText,
+    uploadedFileName,
+    optimizedCache,
+    structuredResult,
+    optimizedText
+  ]);
 
   // 关闭用户引导并记录状态
   const handleCloseUserGuide = () => {
@@ -491,7 +564,13 @@ function App() {
           setResumeContent(firstContent[0]);
         }
 
-        setOptimizedText('✅ 截图内容已提取！请选择要优化的字段，然后点击「优化」按钮。');
+        setOptimizedText('✅ 截图内容已提取！正在自动优化第一个识别到的字段...');
+
+        // 🆕 自动优化第一个识别到的字段（问题#1：截图模式自动优化）
+        // 使用setTimeout确保状态已更新
+        setTimeout(() => {
+          handleOptimize();
+        }, 500);
 
       } catch (parseError) {
         console.error('解析Vision API响应失败:', parseError);

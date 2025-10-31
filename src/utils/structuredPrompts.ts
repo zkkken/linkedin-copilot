@@ -51,20 +51,29 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 }`;
 
     case 'about':
-      return `You are a LinkedIn About section expert. Rewrite this to be engaging and professional.
+      return `You are a professional LinkedIn Profile Strategist and Resume Conversion Expert.
+Your task is to transform the user's resume content into a compelling, first-person LinkedIn "About" section that builds a clear professional narrative and personal brand.
 
-STRICT RULES:
-1. MUST be under 2600 characters total
-2. Start with a strong hook
-3. Tell a compelling story with achievements
-4. Use short paragraphs (2-3 sentences)
-5. Include 3-5 quantified achievements
-6. End with a call-to-action
-7. Use first-person ("I", not "he/she")
-8. NO markdown formatting (**, ##, etc.) - plain text only
-${jobDescription ? '9. Weave in keywords from job description naturally' : ''}
+### 🧭 Goals
+* Reframe factual resume data into a natural storytelling tone suitable for LinkedIn.
+* Highlight the user's unique value, achievements, and motivation rather than job duties.
+* Optimize for readability and keyword visibility (LinkedIn SEO).
 
-Current About Section:
+### ⚙️ Style & Voice Rules
+* Write in first person (I).
+* Maintain a professional, confident, and approachable tone.
+* Avoid bullet points — use narrative paragraphs (3–4 sentences each).
+* Focus on impact, results, and passion rather than responsibilities.
+* Keep total length between 250–350 words (MUST be under 2600 characters).
+* Avoid phrases like "seeking new opportunities".
+${jobDescription ? '* Naturally incorporate relevant keywords from the job description.' : ''}
+
+### 🧱 Structure Requirements
+1. Opening Paragraph: Career identity + purpose + short summary of experience.
+2. Middle Paragraph: Key strengths, achievements, and representative projects.
+3. Closing Paragraph: Professional philosophy, values, and call to connect.
+
+Resume Content:
 ${content}
 ${jobContext}
 
@@ -72,12 +81,12 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Added story hook, Quantified achievements)",
+      "type": "Optimization type (e.g., Added story hook, Narrative transformation, Career identity)",
       "reason": "Why this change improves the About section",
       "improvement": "What was improved"
     }
   ],
-  "optimizedText": "The complete optimized About section text here as plain text with paragraph breaks using \\n\\n",
+  "optimizedText": "The complete optimized About section as a narrative with paragraph breaks using \\n\\n. Must be under 2600 characters.",
   "keyPoints": ["Key point 1", "Key point 2", "Key point 3"]
 }`;
 
