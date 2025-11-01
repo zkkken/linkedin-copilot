@@ -1,9 +1,9 @@
-// 1. 导入 Firebase App SDK
+﻿// 1. Import Firebase App SDK
 import { initializeApp } from "firebase/app";
-// 2. 导入最新的 Firebase AI SDK
+// 2. Import the Firebase AI SDK
 import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
-// 3. 您的 Firebase 项目配置 (来自您的控制台)
+// 3. Firebase project configuration (from your console)
 const firebaseConfig = {
   apiKey: "AIzaSyBovSw6r0EJcgiDmbuYF-fmAe2F_ahYg-M",
   authDomain: "hackthon-d6c87.firebaseapp.com",
@@ -14,34 +14,32 @@ const firebaseConfig = {
   measurementId: "G-217M2SM7N1"
 };
 
-// 4. 初始化 Firebase App
+// 4. Initialize Firebase App
 const firebaseApp = initializeApp(firebaseConfig);
 
-// 5. 初始化 Gemini Developer API 后端服务
-const ai = getAI(firebaseApp, { 
-    backend: new GoogleAIBackend(),
-  useLimitedUseAppCheckTokens: true 
+// 5. Initialize Gemini Developer API backend service
+const ai = getAI(firebaseApp, {
+  backend: new GoogleAIBackend(),
+  useLimitedUseAppCheckTokens: true
 });
 
-// 6. 创建一个生成模型实例并导出，供您的 React 组件使用
-//    (使用您计划中的 'gemini-2.5-flash' 模型)
+// 6. Create and export a generative model instance for React components
 export const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
 
 /**
- * 使用 Gemini Vision API 分析截图
- * @param imageDataUrl base64 编码的图片数据 URL
- * @param prompt 分析提示词
- * @returns AI 分析结果
+ * Analyze a screenshot using Gemini Vision API
+ * @param imageDataUrl base64-encoded image data URL
+ * @param prompt analysis prompt
+ * @returns AI analysis result
  */
 export async function analyzeScreenshot(
   imageDataUrl: string,
   prompt: string
 ): Promise<string> {
   try {
-    // 提取 base64 数据（移除 data:image/png;base64, 前缀）
+    // Remove the data:image/png;base64, prefix
     const base64Data = imageDataUrl.split(',')[1];
 
-    // 使用 Gemini 模型进行图片分析
     const result = await model.generateContent([
       {
         inlineData: {
@@ -55,10 +53,10 @@ export async function analyzeScreenshot(
     const response = result.response;
     return response.text();
   } catch (error) {
-    console.error("Vision API 调用失败:", error);
+    console.error("Vision API call failed:", error);
     if (error instanceof Error) {
-      throw new Error(`图片分析失败: ${error.message}`);
+      throw new Error(`Screenshot analysis failed: ${error.message}`);
     }
-    throw new Error('图片分析失败，请重试');
+    throw new Error('Screenshot analysis failed. Please try again.');
   }
 }

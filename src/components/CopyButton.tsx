@@ -13,13 +13,13 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ text, disabled = false }
       await navigator.clipboard.writeText(text);
       setCopied(true);
 
-      // 2秒后重置状态
+      // Reset state after 2 seconds
       setTimeout(() => {
         setCopied(false);
       }, 2000);
     } catch (error) {
-      console.error('复制失败:', error);
-      // 降级方案：使用 document.execCommand
+      console.error('Copy failed:', error);
+      // Fallback: use document.execCommand
       try {
         const textArea = document.createElement('textarea');
         textArea.value = text;
@@ -32,7 +32,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ text, disabled = false }
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (fallbackError) {
-        console.error('降级复制也失败:', fallbackError);
+        console.error('Fallback copy also failed:', fallbackError);
       }
     }
   };
@@ -48,7 +48,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ text, disabled = false }
           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
           : 'bg-[#0A66C2] text-white hover:bg-[#004182] active:scale-95'
       }`}
-      title={copied ? '已复制！' : '复制到剪贴板'}
+      title={copied ? 'Copied!' : 'Copy to clipboard'}
     >
       {copied ? (
         <>
@@ -65,7 +65,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ text, disabled = false }
               d="M5 13l4 4L19 7"
             />
           </svg>
-          <span>已复制！</span>
+          <span>Copied!</span>
         </>
       ) : (
         <>
@@ -82,7 +82,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({ text, disabled = false }
               d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
             />
           </svg>
-          <span>复制</span>
+          <span>Copy</span>
         </>
       )}
     </button>

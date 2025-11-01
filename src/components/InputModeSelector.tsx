@@ -1,6 +1,6 @@
 /**
  * Input Mode Selector Component
- * 输入模式选择器：手动输入 / PDF上传 / 截图分析
+ * Input mode selector: manual entry / PDF upload / screenshot analysis
  */
 
 export type InputMode = 'manual' | 'pdf' | 'screenshot';
@@ -23,26 +23,26 @@ interface ModeConfig {
 const modes: ModeConfig[] = [
   {
     id: 'manual',
-    label: '手动输入',
+    label: 'Manual Input',
     icon: '✍️',
-    description: '直接输入或粘贴文本',
-    badge: '推荐',
+    description: 'Type or paste text directly',
+    badge: 'Recommended',
     badgeColor: 'bg-green-100 text-green-800',
   },
   {
     id: 'pdf',
-    label: 'PDF上传',
+    label: 'PDF Upload',
     icon: '📄',
-    description: '上传简历PDF文件',
-    badge: '安全',
+    description: 'Upload a resume PDF file',
+    badge: 'Secure',
     badgeColor: 'bg-[#EAF3FF] text-[#0A66C2]',
   },
   {
     id: 'screenshot',
-    label: 'LinkedIn快照',
+    label: 'LinkedIn Snapshot',
     icon: '📸',
-    description: '截图当前页面分析',
-    badge: '实验性',
+    description: 'Analyze a captured LinkedIn page',
+    badge: 'Beta',
     badgeColor: 'bg-yellow-100 text-yellow-800',
   },
 ];
@@ -51,8 +51,8 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">📋 选择输入方式</h3>
-        <span className="text-xs text-gray-500">三种模式任选</span>
+        <h3 className="text-sm font-semibold text-gray-900">📋 Select input mode</h3>
+        <span className="text-xs text-gray-500">Choose the option that fits best</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -74,7 +74,7 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
                 ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               `}
             >
-              {/* 图标和标签 */}
+              {/* Icon and copy */}
               <div className="flex flex-col items-center space-y-2">
                 <span className="text-2xl">{mode.icon}</span>
                 <div className="text-center">
@@ -87,7 +87,7 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
                 </div>
               </div>
 
-              {/* 徽章 */}
+              {/* Badge */}
               {mode.badge && (
                 <div className="absolute -top-2 -right-2">
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${mode.badgeColor} shadow-sm`}>
@@ -96,7 +96,7 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
                 </div>
               )}
 
-              {/* 选中指示器 */}
+              {/* Selected indicator */}
               {isSelected && (
                 <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
                   <div className="w-8 h-1 bg-[#0A66C2] rounded-full"></div>
@@ -107,15 +107,15 @@ export function InputModeSelector({ selectedMode, onModeChange, disabled = false
         })}
       </div>
 
-      {/* 模式说明 */}
+      {/* Mode hint */}
       <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
         <p className="text-xs text-gray-600 flex items-start">
           <svg className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          {selectedMode === 'manual' && '最安全的方式，直接粘贴您的简历内容。'}
-          {selectedMode === 'pdf' && 'PDF文件在本地解析，数据不会上传服务器。'}
-          {selectedMode === 'screenshot' && '⚠️ 实验性功能，使用前请查看免责声明。'}
+          {selectedMode === 'manual' && 'Safest option - paste your resume content directly.'}
+          {selectedMode === 'pdf' && 'PDF files are parsed locally; nothing is uploaded to a server.'}
+          {selectedMode === 'screenshot' && '⚠️ Experimental feature. Review the disclaimer before use.'}
         </p>
       </div>
     </div>

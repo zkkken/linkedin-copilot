@@ -25,22 +25,22 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     setProgress(null);
 
     try {
-      // 解析 PDF
+      // Parse PDF
       const result = await parsePDF(file, (prog) => {
         setProgress(prog);
       });
 
-      // 提取成功
+      // Extraction succeeded
       setUploadedFileName(result.fileName);
       onTextExtracted(result.text, result.fileName);
       setProgress(null);
     } catch (err) {
-      console.error('文件处理错误:', err);
-      setError(err instanceof Error ? err.message : '文件处理失败');
+      console.error('File processing error:', err);
+      setError(err instanceof Error ? err.message : 'File processing failed');
       setUploadedFileName('');
     } finally {
       setIsProcessing(false);
-      // 清空 input，允许重新上传相同文件
+      // Reset the input so the same file can be uploaded again
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -53,7 +53,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="space-y-3">
-      {/* 隐藏的文件输入 */}
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -63,7 +63,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         disabled={disabled || isProcessing}
       />
 
-      {/* 上传按钮 */}
+      {/* Upload button */}
       <button
         onClick={handleButtonClick}
         disabled={disabled || isProcessing}
@@ -95,7 +95,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            解析中...
+            Processing...
           </span>
         ) : (
           <span className="flex items-center justify-center">
@@ -113,17 +113,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
               />
             </svg>
-            上传 PDF 简历
+            Upload PDF resume
           </span>
         )}
       </button>
 
-      {/* 进度条 */}
+      {/* Progress bar */}
       {progress && (
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-gray-600">
             <span>
-              正在解析第 {progress.currentPage} / {progress.totalPages} 页
+              Parsing page {progress.currentPage} / {progress.totalPages}
             </span>
             <span>{progress.percentage}%</span>
           </div>
@@ -136,7 +136,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         </div>
       )}
 
-      {/* 成功提示 */}
+      {/* Success notice */}
       {uploadedFileName && !isProcessing && !error && (
         <div className="flex items-center p-3 bg-green-50 border border-green-200 rounded-md">
           <svg
@@ -153,12 +153,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             />
           </svg>
           <span className="text-sm text-green-800 truncate">
-            {uploadedFileName} 已解析
+            {uploadedFileName} processed
           </span>
         </div>
       )}
 
-      {/* 错误提示 */}
+      {/* Error notice */}
       {error && (
         <div className="flex items-start p-3 bg-red-50 border border-red-200 rounded-md">
           <svg
@@ -178,7 +178,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         </div>
       )}
 
-      {/* 隐私提示 */}
+      {/* Privacy notice */}
       <div className="flex items-start p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded-md">
         <svg
           className="w-5 h-5 text-[#0A66C2] mr-2 flex-shrink-0 mt-0.5"
@@ -194,7 +194,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           />
         </svg>
         <p className="text-xs text-[#0A66C2]">
-          <strong>隐私保护：</strong>您的简历文件仅在本地浏览器中处理，不会被上传到任何服务器。
+          <strong>Privacy:</strong> Your resume is processed locally in the browser and never uploaded to any server.
         </p>
       </div>
     </div>

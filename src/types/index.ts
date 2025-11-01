@@ -1,60 +1,59 @@
-/**
+﻿/**
  * LinkedIn Safe Co-Pilot - Type Definitions
- *
- * 定义项目中使用的所有 TypeScript 类型
+ * Defines every TypeScript contract used by the project.
  */
 
 /**
- * 优化建议项
+ * Optimization suggestion item returned by AI.
  */
 export interface OptimizationSuggestion {
-  type: string;           // 优化类型：如"添加量化指标"、"使用STAR方法"、"关键词优化"
-  reason: string;         // 为什么这样优化
-  improvement: string;    // 具体改进内容
-  before?: string;        // 原文片段（可选）
-  after?: string;         // 改后片段（可选）
+  type: string;           // e.g., "Add quantification", "Keyword optimization"
+  reason: string;         // Why this change is recommended
+  improvement: string;    // What was improved
+  before?: string;        // Optional original snippet
+  after?: string;         // Optional revised snippet
 }
 
 /**
- * LinkedIn 个人资料的不同部分（使用官方命名）
+ * LinkedIn profile sections (official naming conventions).
  */
 export type SectionType =
+  | 'general'
   | 'headline'
   | 'about'
   | 'experience'
   | 'education'
-  | 'licenses-certifications'  // 官方: Licenses & certifications
+  | 'licenses-certifications'
   | 'skills'
-  | 'projects'                 // Accomplishments 子分区
-  | 'publications'             // Accomplishments 子分区
-  | 'honors-awards'            // 官方: Honors & awards (Accomplishments 子分区)
-  | 'volunteer-experience'     // 官方: Volunteer experience
-  | 'general';
+  | 'projects'
+  | 'publications'
+  | 'honors-awards'
+  | 'volunteer-experience';
 
 /**
- * 字段配置接口
+ * Section configuration descriptor.
  */
 export interface SectionConfig {
   id: SectionType;
   label: string;
   placeholder: string;
   description: string;
-  maxLength?: number;      // LinkedIn 推荐的最大长度
-  rows: number;            // 文本框行数
-  icon: string;            // 图标 emoji 或 SVG 路径
+  maxLength?: number;      // LinkedIn recommended length
+  rows: number;            // Default textarea rows
+  icon: string;            // Emoji or icon descriptor
 }
 
 /**
- * AI 优化的 Prompt 模板接口
+ * Prompt template contract for AI interactions.
  */
 export interface PromptTemplate {
-  role: string;            // AI 角色设定
-  rules: string[];         // 优化规则
-  outputFormat: string;    // 输出格式要求
+  role: string;
+  rules: string[];
+  outputFormat: string;
 }
 
 /**
- * 应用状态接口
+ * Application state structure.
  */
 export interface AppState {
   resumeContent: string;
@@ -67,151 +66,127 @@ export interface AppState {
 }
 
 /**
- * LinkedIn 工作经历结构化输出接口
+ * Structured LinkedIn experience output.
  */
 export interface LinkedInExperienceStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  title: string;              // 职位头衔 (max 100 chars)
-  employmentType: string;     // 职位性质: Full-time | Part-time | Contract | Internship | Freelance
-  company: string;            // 公司名称 (max 100 chars)
-  location?: string;          // 地点 (可选)
-  description: string;        // 工作描述 (bullet points, max 2000 chars)
+  suggestions: OptimizationSuggestion[];
+  title: string;              // Job title (max 100 chars)
+  employmentType: string;     // Full-time | Part-time | Contract | Internship | Freelance
+  company: string;            // Company name (max 100 chars)
+  location?: string;          // Optional location
+  description: string;        // Bullet list description (max 2000 chars)
 }
 
-/**
- * LinkedIn 标题优化结构化输出
- */
+/** Structured headline output. */
 export interface LinkedInHeadlineStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  options: string[];          // 多个优化选项 (each max 220 chars)
+  suggestions: OptimizationSuggestion[];
+  options: string[];          // Up to 3 options (<=220 chars each)
 }
 
-/**
- * LinkedIn 个人简介优化结构化输出
- */
+/** Structured About section output. */
 export interface LinkedInAboutStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  optimizedText: string;      // 优化后的完整文本 (max 2600 chars)
-  keyPoints?: string[];       // 关键亮点提取（可选）
+  suggestions: OptimizationSuggestion[];
+  optimizedText: string;      // Full narrative (max 2600 chars)
+  keyPoints?: string[];       // Optional highlight list
 }
 
-/**
- * LinkedIn 技能优化结构化输出
- */
+/** Structured skills output. */
 export interface LinkedInSkillsStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
+  suggestions: OptimizationSuggestion[];
   categories: {
-    name: string;             // 类别名称（如"技术技能"）
-    skills: string[];         // 该类别下的技能列表
+    name: string;             // Category name (e.g., "Technical Skills")
+    skills: string[];         // Skills in that category
   }[];
 }
 
-/**
- * LinkedIn 教育经历结构化输出
- */
+/** Structured education output. */
 export interface LinkedInEducationStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  degree: string;             // 学位名称 (e.g., "Bachelor of Science in Computer Science")
-  school: string;             // 学校名称 (max 100 chars)
-  fieldOfStudy?: string;      // 专业领域 (可选)
-  grade?: string;             // GPA或成绩 (可选，仅当≥3.5时建议显示)
-  highlights: string;         // 亮点内容：课程、项目、成就 (max 600 chars, bullet points)
-  activities?: string;        // 课外活动 (可选)
+  suggestions: OptimizationSuggestion[];
+  degree: string;             // Degree (e.g., "Bachelor of Commerce")
+  school: string;             // Institution name (max 100 chars)
+  fieldOfStudy?: string;      // Optional field of study
+  grade?: string;             // Optional GPA or distinction (≥3.5 recommended)
+  highlights: string;         // Bullet list of highlights (max 600 chars)
+  activities?: string;        // Optional extracurriculars
 }
 
-/**
- * LinkedIn 证书认证结构化输出
- */
+/** Structured certifications output. */
 export interface LinkedInCertificationStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  name: string;               // 证书名称 (max 100 chars)
-  organization: string;       // 颁发机构 (max 100 chars)
-  issueDate?: string;         // 颁发日期 (可选)
-  credentialId?: string;      // 证书ID (可选)
-  description: string;        // 适用场景/能力边界说明 (max 200 chars)
+  suggestions: OptimizationSuggestion[];
+  name: string;               // Certification name (max 100 chars)
+  organization: string;       // Issuing organization (max 100 chars)
+  issueDate?: string;         // Optional issue date
+  credentialId?: string;      // Optional credential ID
+  description: string;        // Applicability / capability summary (max 200 chars)
 }
 
-/**
- * LinkedIn 项目经历结构化输出
- */
+/** Structured project output. */
 export interface LinkedInProjectStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  name: string;               // 项目名称 (max 100 chars)
-  role?: string;              // 项目角色 (可选)
-  date?: string;              // 项目时间 (可选)
-  description: string;        // 项目描述：背景→动作→成果 (max 1000 chars, STAR方法)
-  technologies?: string[];    // 使用的技术栈 (可选)
+  suggestions: OptimizationSuggestion[];
+  name: string;               // Project name (max 100 chars)
+  role?: string;              // Optional role
+  date?: string;              // Optional timeline
+  description: string;        // Background → actions → results (max 1000 chars)
+  technologies?: string[];    // Optional tech stack
 }
 
-/**
- * LinkedIn 出版物结构化输出
- */
+/** Structured publication output. */
 export interface LinkedInPublicationStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  title: string;              // 标题 (max 100 chars)
-  publisher: string;          // 出版商/平台 (max 100 chars)
-  date?: string;              // 发表日期 (可选)
-  description: string;        // 简介 (max 500 chars)
-  url?: string;               // URL占位 (可选，不自动生成)
+  suggestions: OptimizationSuggestion[];
+  title: string;              // Title (max 100 chars)
+  publisher: string;          // Publisher/platform (max 100 chars)
+  date?: string;              // Optional publication date
+  description: string;        // Summary (max 500 chars)
+  url?: string;               // Optional URL
 }
 
-/**
- * LinkedIn 荣誉奖项结构化输出
- */
+/** Structured honors & awards output. */
 export interface LinkedInAwardStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  title: string;              // 奖项名称 (max 100 chars)
-  issuer: string;             // 颁发机构 (max 100 chars)
-  date?: string;              // 获奖日期 (可选)
-  description: string;        // 获奖原因/意义 (max 300 chars)
+  suggestions: OptimizationSuggestion[];
+  title: string;              // Award title (max 100 chars)
+  issuer: string;             // Issuer (max 100 chars)
+  date?: string;              // Optional date
+  description: string;        // Recognition summary (max 300 chars)
 }
 
-/**
- * LinkedIn 志愿经历结构化输出
- */
+/** Structured volunteer experience output. */
 export interface LinkedInVolunteerStructured {
-  suggestions: OptimizationSuggestion[];  // 优化建议列表
-  role: string;               // 志愿角色 (max 100 chars)
-  organization: string;       // 组织名称 (max 100 chars)
-  cause?: string;             // 公益领域 (可选)
-  date?: string;              // 时间 (可选)
-  description: string;        // 经历描述：背景→贡献→影响 (max 600 chars)
+  suggestions: OptimizationSuggestion[];
+  role: string;               // Volunteer role (max 100 chars)
+  organization: string;       // Organization (max 100 chars)
+  cause?: string;             // Optional cause
+  date?: string;              // Optional timeframe
+  description: string;        // Background → contribution → impact (max 600 chars)
 }
 
-/**
- * LinkedIn 推荐摘要结构化输出
- */
+/** Structured recommendation summary output. */
 export interface LinkedInRecommendationStructured {
-  summary: string;            // 已有推荐的亮点摘要 (max 300 chars)
-  keyThemes: string[];        // 提炼的关键主题 (e.g., ["Leadership", "Technical Expertise"])
-  note: string;               // 说明：基于已有推荐总结，非生成
+  summary: string;            // Highlight summary (max 300 chars)
+  keyThemes: string[];        // Extracted themes (e.g., ["Leadership", "Technical Expertise"])
+  note: string;               // Clarifies that this summarizes existing recommendations
 }
 
-/**
- * LinkedIn 精选内容结构化输出
- */
+/** Structured featured content output. */
 export interface LinkedInFeaturedStructured {
   items: {
-    title: string;            // 条目标题 (max 100 chars)
-    description: string;      // 价值主张说明 (max 180 chars)
-    type?: string;            // 类型：文章、项目、媒体等 (可选)
+    title: string;            // Item title (max 100 chars)
+    description: string;      // Value proposition (max 180 chars)
+    type?: string;            // Optional type (article, project, media, etc.)
   }[];
 }
 
-/**
- * LinkedIn 动态摘要结构化输出
- */
+/** Structured activity summary output. */
 export interface LinkedInActivityStructured {
-  summary: string;            // 整体活跃度摘要 (max 200 chars)
+  summary: string;            // Overall engagement summary (max 200 chars)
   topPosts: {
-    title: string;            // 帖子标题化摘要 (max 100 chars)
-    engagement?: string;      // 互动情况 (可选)
+    title: string;            // Post summary (max 100 chars)
+    engagement?: string;      // Optional engagement note
   }[];
-  note: string;               // 说明：基于已有动态总结，不改变原意
+  note: string;               // Clarifies that this summarizes existing activity
 }
 
 /**
- * 通用结构化优化输出（联合类型）
+ * Union of all structured optimization outputs plus plain-text fallback.
  */
 export type StructuredOptimizationResult =
   | LinkedInExperienceStructured
@@ -227,4 +202,4 @@ export type StructuredOptimizationResult =
   | LinkedInRecommendationStructured
   | LinkedInFeaturedStructured
   | LinkedInActivityStructured
-  | { plainText: string };    // 降级处理：纯文本
+  | { plainText: string };

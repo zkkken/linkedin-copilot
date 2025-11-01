@@ -1,13 +1,13 @@
 /**
  * LinkedIn Safe Co-Pilot - Structured Prompts
  *
- * 生成返回结构化JSON的AI提示，用于LinkedIn各字段的精确优化
+ * Generate structured JSON prompts for precise LinkedIn optimization
  */
 
 import type { SectionType } from '../types';
 
 /**
- * 生成结构化的优化提示（返回JSON格式）
+ * Create structured optimization prompts that yield JSON output
  */
 export const generateStructuredPrompt = (
   sectionType: SectionType,
@@ -20,17 +20,23 @@ export const generateStructuredPrompt = (
 
   switch (sectionType) {
     case 'headline':
-      return `You are a LinkedIn headline optimization expert. Generate 2-3 compelling headline options.
+      return `You are a LinkedIn Headline Strategist and Employer Branding Expert. Create 2-3 high-impact headline options optimized for both recruiters and LinkedIn search.
 
-STRICT RULES:
-1. Each option MUST be under 220 characters
-2. Include 3-5 relevant keywords
-3. Use separators (| or •) for readability
-4. Focus on value proposition, not generic terms
-5. Be specific and results-oriented
-${jobDescription ? '6. Incorporate keywords from the job description' : ''}
+### Objectives
+- Communicate professional identity, value proposition, and specialism within 220 characters.
+- Include 3-5 high-value keywords naturally.
+- Reflect the user's brand tone (Executive, Creative, Analytical, or Collaborative).
+- Use separators such as | or • for readability.
+- Avoid filler phrases; every word should signal impact.
+${jobDescription ? '- Integrate critical keywords from the target job description without sounding forced.\n' : ''}
 
-Current Headline:
+### Style Guidelines
+- Focus on outcomes or positioning ("Helping X achieve Y through Z") instead of repeating the current job title.
+- Keep each option under 220 characters.
+- Sound credible and specific, not salesy.
+- Optionally highlight a differentiator such as industry focus, certification, or leadership scope.
+
+Current headline:
 ${content}
 ${jobContext}
 
@@ -38,58 +44,41 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Add quantification, Keyword optimization)",
-      "reason": "Why this change improves the headline",
-      "improvement": "What was improved"
+      "type": "Optimization focus (e.g., Keyword optimization, Brand clarity)",
+      "reason": "Why this adjustment improves recruiter engagement",
+      "improvement": "What changed in the options"
     }
   ],
   "options": [
-    "Option 1 text here (under 220 chars)",
-    "Option 2 text here (under 220 chars)",
-    "Option 3 text here (under 220 chars)"
+    "Option 1 text (under 220 characters)",
+    "Option 2 text (under 220 characters)",
+    "Option 3 text (under 220 characters)"
   ]
 }`;
 
     case 'about':
-      return `You are a professional LinkedIn Profile Strategist and Resume Conversion Expert.
-Your task is to transform the user's resume content into a compelling, first-person LinkedIn "About" section that builds a clear professional narrative and personal brand.
+      return `You are a LinkedIn Profile Strategist and HR-aware Content Optimizer. Convert factual resume input into a natural first-person LinkedIn "About" section that feels credible, authentic, and high-value to recruiters.
 
-### 🧭 Goals
-* Reframe factual resume data into a natural storytelling tone suitable for LinkedIn.
-* Highlight the user's unique value, achievements, and motivation rather than job duties.
-* Optimize for readability and keyword visibility (LinkedIn SEO).
-* Create a strong "hook" in the first 250-300 characters (before "See more" fold on desktop).
+### Objectives
+- Translate achievements into a cohesive professional story instead of a duty list.
+- Balance measurable impact with personality, motivation, or values.
+- Optimize for LinkedIn keyword search and recruiter readability.
 
-### ⚙️ Style & Voice Rules
-* Write in first person (I).
-* Maintain a professional, confident, and approachable tone.
-* Avoid bullet points — use narrative paragraphs (3–4 sentences each).
-* Focus on impact, results, and passion rather than responsibilities.
-* OPTIMAL LENGTH: 1,800–2,200 characters (280–350 words) for best reading completion rate.
-  - Platform limit: 2,600 characters maximum
-  - Early career/career changers: 1,200–1,600 characters (200–260 words)
-  - Mid-level/Senior ICs: 1,600–2,200 characters (250–350 words)
-  - Management/Executives: 2,000–2,400 characters (330–380 words)
-* Avoid phrases like "seeking new opportunities", clichés, and job duty lists.
-${jobDescription ? '* Naturally incorporate 2-3 relevant keywords from the job description in the first paragraph.' : ''}
+### Style & Voice
+- Write in first person (I) with a confident, human, professional tone.
+- Use three short paragraphs (3-5 sentences each) separated by two line breaks.
+- Distribute 5-8 industry or role keywords naturally across the section.
+- Blend quantified results with collaboration, leadership, or adaptability examples.
+- Target 1,800-2,200 characters and trim content that adds no new value.
+- Avoid clichés or phrases such as "seeking new opportunities".
+${jobDescription ? '- Incorporate critical keywords from the job description across all paragraphs.\n' : ''}
 
-### 🧱 Structure Requirements
-1. FIRST 300 CHARACTERS (Critical "above the fold"):
-   - Career identity + target audience + value proposition
-   - Include 2-3 industry keywords
-   - This is what recruiters see before clicking "See more"
+### Structure
+1. Opening (~300 characters): career identity, intended audience, core value proposition, at least two keywords.
+2. Middle (~900 characters): 3-4 Action → Result stories with metrics plus soft-skill context.
+3. Closing (~500 characters): professional philosophy, current focus, and an invitation to connect.
 
-2. MIDDLE SECTION (Core narrative):
-   - 3-5 "Action → Result" statements with quantified outcomes
-   - Include numbers, scale, efficiency improvements, or impact metrics
-   - Show methodology and approach, not just responsibilities
-
-3. CLOSING (Call to connect):
-   - Professional philosophy or current exploration area
-   - Subtle call-to-action (e.g., "Always happy to discuss [topic]")
-   - Avoid job-seeking tone
-
-Resume Content:
+Resume content:
 ${content}
 ${jobContext}
 
@@ -97,34 +86,37 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Added hook in first 300 chars, Quantified impact, Optimized keyword placement)",
-      "reason": "Why this change improves the About section",
-      "improvement": "What was improved",
+      "type": "Optimization focus (e.g., Hook strengthened, Keyword distribution, Soft skills added)",
+      "reason": "Why this change supports recruiter expectations",
+      "improvement": "What was added or refined",
       "before": "Original snippet (optional)",
       "after": "Optimized snippet (optional)"
     }
   ],
-  "optimizedText": "The complete optimized About section as a narrative with paragraph breaks using \\n\\n. Target 1,800-2,200 characters (maximum 2,600).",
-  "keyPoints": ["Key point 1", "Key point 2", "Key point 3"]
+  "optimizedText": "Three-paragraph narrative with blank lines between paragraphs (\\n\\n). Keep within 2,200 characters.",
+  "keyPoints": ["Hook communicates value within first 300 characters", "Results are quantified", "Soft skills are integrated"]
 }`;
 
     case 'experience':
-      return `You are a LinkedIn work experience optimization expert. Structure each work experience entry for maximum impact.
+      return `You are a LinkedIn Experience Optimization Specialist with HR expertise. Rewrite each work experience entry for clarity, impact, and recruiter readability.
 
-STRICT RULES:
-1. Title: MUST be under 100 characters
-2. Employment Type: Choose ONE from: Full-time, Part-time, Contract, Internship, Freelance
-3. Company: MUST be under 100 characters
-4. Description: MUST be under 2000 characters
-5. Description format: Use bullet points with • symbol, each on new line
-6. Each bullet: Use STAR method (Situation, Task, Action, Result)
-7. Lead with action verbs (Led, Spearheaded, Drove, Delivered, etc.)
-8. Quantify results (numbers, %, timeframes)
-9. NO markdown formatting (**, ##, etc.) - plain text only
-10. If multiple roles/positions/projects are detected, optimize EACH ONE separately
-${jobDescription ? '11. Incorporate 5+ keywords from job description' : ''}
+### Objectives
+- Present the role as quantified, action-driven achievements.
+- Showcase growth trajectory and leadership or initiative signals.
+- Align tone with the user's overall LinkedIn brand (Executive, Analytical, Collaborative, etc.).
+- Ensure the first two bullets communicate scale and results.
+${jobDescription ? '- Weave in high-priority keywords from the target job description where relevant.\n' : ''}
 
-Work Experience Content:
+### Style & Formatting
+- Title: under 100 characters.
+- Employment Type: Full-time, Part-time, Contract, Internship, or Freelance.
+- Company: under 100 characters.
+- Description: 5-6 bullets max, plain text, under 2,000 characters.
+- Each bullet follows Impact-first STAR (Action verb + Result + Evidence/metric + Brief context).
+- Start bullets with strong verbs (Delivered, Spearheaded, Optimized, Transformed).
+- Quantify outcomes (% / $ / timeframe / volume) and include meaningful keywords.
+
+Current experience entry:
 ${content}
 ${jobContext}
 
@@ -132,30 +124,36 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., STAR method applied, Quantified impact)",
-      "reason": "Why this change improves the experience",
-      "improvement": "What was improved"
+      "type": "Optimization focus (e.g., Impact-first STAR, Quantified results, Keyword enrichment)",
+      "reason": "Why this change improves recruiter scanning",
+      "improvement": "What shifted in the description"
     }
   ],
-  "title": "Job title (max 100 chars)",
+  "title": "Optimized job title (<=100 chars)",
   "employmentType": "Full-time",
-  "company": "Company name (max 100 chars)",
-  "location": "City, Country (optional)",
-  "description": "• Achievement bullet 1 with quantified results\\n• Achievement bullet 2 with STAR method\\n• Achievement bullet 3 showing business impact\\n• Achievement bullet 4 with specific numbers"
+  "company": "Company name (<=100 chars)",
+  "location": "Location (optional)",
+  "description": "• Bullet one\\n• Bullet two\\n• Bullet three\\n• Bullet four"
 }`;
 
     case 'skills':
-      return `You are a LinkedIn skills optimization expert. Organize these skills for maximum visibility.
+      return `You are a LinkedIn Skills Strategist and HR talent-taxonomy expert. Organize and refine this skills list for recruiter search visibility and clarity.
 
-STRICT RULES:
-1. Categorize into 2-4 logical groups
-2. Prioritize in-demand skills
-3. Use industry-standard terminology
-4. Include both hard and soft skills
-5. NO markdown formatting - plain text only
-${jobDescription ? '6. Emphasize skills from job description' : ''}
+### Objectives
+- Cluster skills logically to highlight depth and breadth.
+- Prioritize high-demand, ATS-recognized keywords.
+- Reflect hybrid competency: hard skills, soft skills, and leadership.
+- Maintain plain text (no Markdown).
+${jobDescription ? '- Prioritize skills that align with the target job description keywords.\n' : ''}
 
-Current Skills:
+### Structure Rules
+1. Group skills into 2-4 categories (for example: Core Finance, Technical Tools, Leadership & Communication).
+2. Limit each group to 3-6 concise, recruiter-friendly terms.
+3. Use standardized names (e.g., "Financial Reporting" instead of "Finance report").
+4. Lead with the most in-demand or target-role-relevant skills.
+5. Include a mix of technical capabilities and transferable strengths.
+
+Current skills:
 ${content}
 ${jobContext}
 
@@ -163,40 +161,38 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Categorized skills, Prioritized in-demand skills)",
-      "reason": "Why this change improves skills presentation",
-      "improvement": "What was improved"
+      "type": "Optimization focus (e.g., Categorized & prioritized, Keyword enrichment)",
+      "reason": "Why this change improves recruiter keyword matching",
+      "improvement": "What was reorganized or emphasized"
     }
   ],
   "categories": [
-    {
-      "name": "Technical Skills",
-      "skills": ["Skill 1", "Skill 2", "Skill 3"]
-    },
-    {
-      "name": "Leadership & Soft Skills",
-      "skills": ["Skill 1", "Skill 2"]
-    }
+    { "name": "Category name", "skills": ["Skill 1", "Skill 2"] },
+    { "name": "Category name", "skills": ["Skill 3", "Skill 4"] }
   ]
 }`;
 
     case 'education':
-      return `You are a LinkedIn education section expert. Optimize this educational background to highlight academic achievements and relevant experience.
+      return `You are a LinkedIn Education Optimization Specialist with employer-branding insight. Rewrite this education entry to highlight academic strength and career relevance.
 
-STRICT RULES:
-1. Degree: Full degree name (max 100 chars)
-2. School: Institution name (max 100 chars)
-3. Field of Study: Optional, include if relevant
-4. Grade: Only include if GPA ≥ 3.5/4.0 or equivalent distinction
-5. Highlights: MUST be under 600 characters
-   - Use bullet points with • symbol
-   - Include relevant coursework, academic projects, honors
-   - Quantify achievements where possible
-6. Activities: Optional extracurricular activities
-7. NO markdown formatting (**, ##, etc.) - plain text only
-${jobDescription ? '8. Emphasize courses/projects relevant to target role' : ''}
+### Objectives
+- Emphasize academic excellence, applied projects, and honors.
+- Demonstrate how the education supports professional competencies.
+- Keep highlights concise (no more than 600 characters).
+${jobDescription ? '- Spotlight coursework or projects that align with the target job description.\n' : ''}
 
-Education Content:
+### Formatting Rules
+- Degree: full official name (<=100 characters).
+- Institution: <=100 characters.
+- Field of study: include if it supports the career goal.
+- GPA: only include if at least 3.5/4.0 or equivalent distinction.
+- Highlights: bullet style using •, each on a new line, <=600 characters total.
+  - Prioritize capstone work, thesis, competitions, or publications.
+  - Quantify outcomes where possible (grades, rankings, awards).
+  - Mention scholarships, Dean's List, distinctions.
+- Activities (optional): leadership or relevant societies.
+
+Education content:
 ${content}
 ${jobContext}
 
@@ -204,17 +200,17 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Highlighted relevant coursework, Quantified achievements)",
-      "reason": "Why this change improves education presentation",
-      "improvement": "What was improved"
+      "type": "Optimization focus (e.g., Relevance emphasis, Achievement clarity)",
+      "reason": "Why this change helps recruiters connect the dots",
+      "improvement": "What was highlighted or refined"
     }
   ],
-  "degree": "Bachelor of Science in Computer Science",
-  "school": "University Name",
-  "fieldOfStudy": "Computer Science",
-  "grade": "GPA: 3.8/4.0",
-  "highlights": "• Relevant coursework: Machine Learning, Data Structures, Algorithms\\n• Capstone project: Built a recommendation system serving 10K+ users\\n• Dean's List (3 semesters)\\n• Published research paper on neural networks",
-  "activities": "President of Computer Science Club, Hackathon organizer"
+  "degree": "Degree name",
+  "school": "Institution name",
+  "fieldOfStudy": "Field of study (optional)",
+  "grade": "GPA or distinction (optional)",
+  "highlights": "• Highlight one\\n• Highlight two\\n• Highlight three",
+  "activities": "Relevant clubs or leadership (optional)"
 }`;
 
     case 'licenses-certifications':
@@ -289,20 +285,22 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 }`;
 
     case 'publications':
-      return `You are a LinkedIn publications expert. Optimize this publication entry to clearly convey its significance.
+      return `You are a LinkedIn Publications Optimization Expert. Rewrite the publication details to highlight contribution, credibility, and real-world relevance.
 
-STRICT RULES:
-1. Title: Full publication title (max 100 chars)
-2. Publisher: Publishing organization or platform (max 100 chars)
-3. Date: Publication date (optional), format as "Month Year"
-4. Description: MUST be under 500 characters
-   - One to two sentences summarizing the key contribution or findings
-   - Who is the target audience and why it matters
-   - Avoid academic jargon, use accessible language
-5. URL: Do NOT generate fake URLs, only include if provided
-6. NO markdown formatting - plain text only
+### Objectives
+- Communicate the publication's impact, not just the title.
+- Indicate audience and practical value (who benefits and why).
+- Keep the description under 500 characters.
 
-Publication Content:
+### Style Rules
+- Title: full name, under 100 characters.
+- Publisher: under 100 characters.
+- Date: Month Year (optional).
+- Description: 1-2 sentences focusing on key insight and relevance; use accessible language.
+- URL: include only if provided; do not fabricate links.
+${jobDescription ? '- Emphasize insights that align with the target job description or industry focus.\n' : ''}
+
+Publication content:
 ${content}
 ${jobContext}
 
@@ -310,34 +308,36 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Clarified key contribution, Added impact metrics)",
-      "reason": "Why this change improves publication presentation",
-      "improvement": "What was improved"
+      "type": "Optimization focus (e.g., Audience framing, Impact clarity)",
+      "reason": "Why this change clarifies value for recruiters and peers",
+      "improvement": "What was sharpened in the entry"
     }
   ],
-  "title": "Scalable Machine Learning Pipelines for Real-Time Analytics",
-  "publisher": "ACM Computing Surveys",
-  "date": "March 2024",
-  "description": "Presents a novel framework for building ML pipelines that process streaming data with sub-100ms latency. Aimed at data engineers and ML practitioners working with real-time systems. Cited by 45+ papers in the first 6 months.",
+  "title": "Publication title",
+  "publisher": "Publisher name",
+  "date": "Month Year",
+  "description": "One to two sentences that show impact and audience relevance.",
   "url": ""
 }`;
 
     case 'honors-awards':
-      return `You are a LinkedIn Honors & Awards expert. Optimize this award entry to highlight achievement and significance.
+      return `You are a LinkedIn Honors & Awards Strategist. Rewrite this award entry to highlight significance and competitive achievement.
 
-STRICT RULES:
-1. Title: Award name (max 100 chars)
-2. Issuer: Organization that gave the award (max 100 chars)
-3. Date: When you received it (optional), format as "Month Year"
-4. Description: MUST be under 300 characters
-   - WHY you received it (the achievement or criteria)
-   - Evaluation criteria or selection ratio if available (e.g., "top 5%", "1 of 10 recipients")
-   - Impact or significance of the achievement
-   - Avoid just restating the award name
-5. NO markdown formatting - plain text only
-${jobDescription ? '6. Emphasize achievements relevant to target role' : ''}
+### Objectives
+- Clarify why the recognition matters and how selective it was.
+- Quantify recognition (top %, number of recipients, scope).
+- Keep the description under 300 characters with a concise impact statement.
+${jobDescription ? '- Emphasize accomplishments that align with the target job description.\n' : ''}
 
-Award Content:
+### Style Rules
+- Title: under 100 characters.
+- Issuer: under 100 characters.
+- Date: Month Year (optional).
+- Description: plain text, ≤300 characters.
+  - Explain achievement criteria or measurable outcome.
+  - Highlight business or organizational impact if relevant.
+
+Award content:
 ${content}
 ${jobContext}
 
@@ -345,35 +345,36 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Added selection criteria, Quantified achievement impact)",
-      "reason": "Why this change improves award presentation",
-      "improvement": "What was improved"
+      "type": "Optimization focus (e.g., Selectivity emphasis, Impact clarity)",
+      "reason": "Why this strengthens credibility",
+      "improvement": "What context or metrics were added"
     }
   ],
-  "title": "Top Innovator Award 2024",
-  "issuer": "Tech Corporation",
-  "date": "December 2024",
-  "description": "Awarded to top 5 employees company-wide (out of 5,000+) for developing an AI-driven cost optimization system that saved $2.3M annually and improved operational efficiency by 40%."
+  "title": "Award title",
+  "issuer": "Issuing organization",
+  "date": "Month Year",
+  "description": "Description that conveys selectivity and impact."
 }`;
 
     case 'volunteer-experience':
-      return `You are a LinkedIn Volunteer Experience expert. Optimize this volunteer experience to showcase contribution, impact, and transferable skills.
+      return `You are a LinkedIn Volunteer Experience Optimization Expert. Rewrite this entry to highlight contribution, leadership, and transferable skills.
 
-STRICT RULES:
-1. Role: Your volunteer role/title (max 100 chars)
-2. Organization: Organization name (max 100 chars)
-3. Cause: Area of focus (optional), e.g., "Education", "Environment"
-4. Date: Time period (optional)
-5. Description: MUST be under 600 characters
-   - Structure: Context → Your contribution → Impact achieved
-   - Use bullet points with • symbol for key accomplishments
-   - Quantify impact where possible (people helped, funds raised, etc.)
-   - EMPHASIZE transferable skills (leadership, project management, communication, etc.)
-   - Show how volunteer work demonstrates professional capabilities
-6. NO markdown formatting (**, ##, etc.) - plain text only
-${jobDescription ? '7. Highlight skills relevant to target role' : ''}
+### Objectives
+- Connect volunteer impact to professional competencies.
+- Show initiative, collaboration, or leadership.
+- Keep the description under 600 characters.
+${jobDescription ? '- Reinforce skills that appear in the target job description.\n' : ''}
 
-Volunteer Content:
+### Style Rules
+- Role: under 100 characters.
+- Organization: under 100 characters.
+- Description: 3-4 bullets or concise sentences, plain text.
+  - Use strong verbs (Led, Organized, Supported, Trained).
+  - Quantify impact (people reached, funds raised, hours contributed).
+  - Link outcomes to soft skills (teamwork, adaptability, empathy).
+- Cause and date are optional but helpful context.
+
+Volunteer content:
 ${content}
 ${jobContext}
 
@@ -381,19 +382,17 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 {
   "suggestions": [
     {
-      "type": "Optimization type (e.g., Quantified impact, Highlighted transferable skills)",
-      "reason": "Why this change improves volunteer experience presentation",
-      "improvement": "What was improved"
+      "type": "Optimization focus (e.g., Transferable skills emphasis, Impact quantified)",
+      "reason": "Why this framing resonates with recruiters",
+      "improvement": "What was clarified or added"
     }
   ],
-  "role": "Technical Mentor",
-  "organization": "Code for Good Foundation",
-  "cause": "Education",
-  "date": "2022 - Present",
-  "description": "Mentor underrepresented youth in software development through weekly coding workshops.\\n\\n• Designed curriculum covering web development fundamentals (HTML, CSS, JavaScript)\\n• Mentored 45+ students, with 78% completing the program\\n• 15 students secured internships at tech companies\\n• Organized 3 hackathons with 200+ participants"
+  "role": "Volunteer role",
+  "organization": "Organization name",
+  "cause": "Cause area (optional)",
+  "date": "Month Year - Month Year",
+  "description": "• Bullet one\n• Bullet two\n• Bullet three"
 }`;
-
-    case 'general':
     default:
       return `You are a LinkedIn optimization expert. Enhance this content to be more impactful.
 
@@ -428,33 +427,33 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 };
 
 /**
- * 解析Gemini返回的JSON字符串
- * 处理可能的Markdown代码块包裹和格式问题
+ * Parse the JSON returned by Gemini
+ * Handle potential Markdown wrappers and formatting issues
  */
 export const parseStructuredResponse = (
   responseText: string,
   sectionType: SectionType
 ): any => {
   try {
-    // 清理可能的Markdown代码块标记
+    // Remove possible Markdown code block markers
     let cleanedText = responseText.trim();
 
-    // 移除可能的 ```json 和 ``` 标记
+    // Strip ```json and ``` fences if present
     cleanedText = cleanedText.replace(/^```json\s*/i, '');
     cleanedText = cleanedText.replace(/^```\s*/, '');
     cleanedText = cleanedText.replace(/\s*```$/, '');
     cleanedText = cleanedText.trim();
 
-    // 尝试解析JSON
+    // Attempt to parse the JSON
     let parsed: any = JSON.parse(cleanedText);
 
-    // 验证结构
+    // Validate structure based on section type
     switch (sectionType) {
       case 'headline':
         if (!parsed.options || !Array.isArray(parsed.options)) {
           throw new Error('Invalid headline structure');
         }
-        // 确保每个选项都在220字符内
+        // Ensure each option is within 220 characters
         parsed.options = parsed.options.map((opt: string) =>
           opt.length > 220 ? opt.substring(0, 217) + '...' : opt
         );
@@ -464,7 +463,7 @@ export const parseStructuredResponse = (
         if (!parsed.optimizedText) {
           throw new Error('Invalid about structure');
         }
-        // 确保在2600字符内
+        // Ensure About text stays within 2600 characters
         if (parsed.optimizedText.length > 2600) {
           parsed.optimizedText = parsed.optimizedText.substring(0, 2597) + '...';
         }
@@ -529,7 +528,7 @@ export const parseStructuredResponse = (
         if (!parsed.degree || !parsed.school || !parsed.highlights) {
           throw new Error('Invalid education structure');
         }
-        // 确保字符限制
+        // Enforce character limits
         if (parsed.degree.length > 100) {
           parsed.degree = parsed.degree.substring(0, 97) + '...';
         }
@@ -545,7 +544,7 @@ export const parseStructuredResponse = (
         if (!parsed.name || !parsed.organization || !parsed.description) {
           throw new Error('Invalid certification structure');
         }
-        // 确保字符限制
+        // Enforce character limits
         if (parsed.name.length > 100) {
           parsed.name = parsed.name.substring(0, 97) + '...';
         }
@@ -561,7 +560,7 @@ export const parseStructuredResponse = (
         if (!parsed.name || !parsed.description) {
           throw new Error('Invalid project structure');
         }
-        // 确保字符限制
+        // Enforce character limits
         if (parsed.name.length > 100) {
           parsed.name = parsed.name.substring(0, 97) + '...';
         }
@@ -574,7 +573,7 @@ export const parseStructuredResponse = (
         if (!parsed.title || !parsed.publisher || !parsed.description) {
           throw new Error('Invalid publication structure');
         }
-        // 确保字符限制
+        // Enforce character limits
         if (parsed.title.length > 100) {
           parsed.title = parsed.title.substring(0, 97) + '...';
         }
@@ -590,7 +589,7 @@ export const parseStructuredResponse = (
         if (!parsed.title || !parsed.issuer || !parsed.description) {
           throw new Error('Invalid award structure');
         }
-        // 确保字符限制
+        // Enforce character limits
         if (parsed.title.length > 100) {
           parsed.title = parsed.title.substring(0, 97) + '...';
         }
@@ -606,7 +605,7 @@ export const parseStructuredResponse = (
         if (!parsed.role || !parsed.organization || !parsed.description) {
           throw new Error('Invalid volunteer structure');
         }
-        // 确保字符限制
+        // Enforce character limits
         if (parsed.role.length > 100) {
           parsed.role = parsed.role.substring(0, 97) + '...';
         }
@@ -617,15 +616,9 @@ export const parseStructuredResponse = (
           parsed.description = parsed.description.substring(0, 597) + '...';
         }
         break;
-
-      case 'general':
-        if (!parsed.plainText) {
-          throw new Error('Invalid general structure');
-        }
-        break;
     }
 
-    // 🔧 确保suggestions字段存在（向后兼容：即使AI没返回suggestions也不会出错）
+    // 🔧 Ensure suggestions array exists for backward compatibility
     if (!parsed.suggestions || !Array.isArray(parsed.suggestions)) {
       parsed.suggestions = [];
     }
@@ -633,10 +626,10 @@ export const parseStructuredResponse = (
     return parsed;
 
   } catch (error) {
-    console.error('JSON解析失败:', error);
-    console.log('原始响应:', responseText);
+    console.error('JSON parse failed:', error);
+    console.log('Raw response:', responseText);
 
-    // 降级处理：返回纯文本格式
+    // Fallback: return plain text format
     return {
       plainText: responseText,
       _fallback: true
@@ -645,14 +638,14 @@ export const parseStructuredResponse = (
 };
 
 /**
- * 清理文本中的Markdown格式标记
+ * Remove Markdown formatting from text
  */
 export const cleanMarkdown = (text: string): string => {
   return text
-    .replace(/\*\*/g, '')      // 移除粗体 **
-    .replace(/\*/g, '')        // 移除斜体 *
-    .replace(/#{1,6}\s/g, '')  // 移除标题 #
-    .replace(/`{1,3}/g, '')    // 移除代码标记 `
-    .replace(/^\s*[-*+]\s/gm, '• ')  // 统一列表符号为 •
+    .replace(/\*\*/g, '')      // Remove bold markers
+    .replace(/\*/g, '')        // Remove italics
+    .replace(/#{1,6}\s/g, '')  // Remove heading markers
+    .replace(/`{1,3}/g, '')    // Remove inline code markers
+    .replace(/^\s*[-*+]\s/gm, '• ')  // Normalize bullet symbols to •
     .trim();
 };

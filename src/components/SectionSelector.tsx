@@ -1,7 +1,7 @@
 /**
  * LinkedIn Safe Co-Pilot - Section Selector Component
  *
- * 字段类型选择器组件
+ * Field type selector component
  */
 
 import { getSectionOptions } from '../utils/sectionConfigs';
@@ -23,7 +23,7 @@ export const SectionSelector: React.FC<SectionSelectorProps> = ({
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        选择要优化的内容类型
+        Choose the section you want to optimize
       </label>
       <div className="relative">
         <select

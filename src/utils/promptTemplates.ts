@@ -1,13 +1,12 @@
-/**
+﻿/**
  * LinkedIn Safe Co-Pilot - AI Prompt Templates
- *
- * 为不同类型的 LinkedIn 内容生成专门的 AI 提示
+ * Generate tailored AI prompts for different LinkedIn sections.
  */
 
 import type { SectionType } from '../types';
 
 /**
- * 为不同的字段类型生成优化提示
+ * Produce an optimization prompt based on section type.
  */
 export const generatePrompt = (
   sectionType: SectionType,
@@ -95,7 +94,6 @@ Provide organized skill categories with bulleted items. Format as:
 • Skill 2
 etc.`;
 
-    case 'general':
     default:
       return `Act as an expert career coach specializing in LinkedIn profile optimization. Enhance the following content to be more impactful and professional.
 
@@ -116,12 +114,12 @@ Provide the optimized content as clean, professional bullet points or paragraphs
 };
 
 /**
- * 检测内容类型（如果用户没有手动选择）
+ * Attempt to detect section type when the user has not selected one.
  */
 export const detectSectionType = (content: string): SectionType => {
   const lowerContent = content.toLowerCase();
 
-  // 检测标题（通常很短，包含 | 或特定关键词）
+  // Headline: typically short and contains separators or branding keywords
   if (
     content.length < 150 &&
     (content.includes('|') || content.includes('•'))
@@ -129,41 +127,37 @@ export const detectSectionType = (content: string): SectionType => {
     return 'headline';
   }
 
-  // 检测工作经历（包含职责、任务相关词汇）
+  // Experience: mentions responsibilities, actions, or achievements
   if (
     lowerContent.includes('responsible') ||
     lowerContent.includes('worked on') ||
     lowerContent.includes('developed') ||
     lowerContent.includes('managed') ||
-    lowerContent.includes('负责') ||
-    lowerContent.includes('开发') ||
-    lowerContent.includes('管理')
+    lowerContent.includes('delivered')
   ) {
     return 'experience';
   }
 
-  // 检测技能（列表格式或包含技能关键词）
+  // Skills: list-like structure or skill-specific vocabulary
   if (
     lowerContent.includes('skills') ||
     lowerContent.includes('proficient') ||
-    lowerContent.includes('技能') ||
-    lowerContent.includes('擅长') ||
+    lowerContent.includes('expertise') ||
     (content.split('\n').length > 5 && content.split('\n').every(line => line.length < 50))
   ) {
     return 'skills';
   }
 
-  // 检测个人简介（较长的段落格式）
+  // About: longer narrative with multiple paragraphs
   if (content.length > 300 && content.split('\n\n').length > 2) {
     return 'about';
   }
 
-  // 默认返回通用类型
-  return 'general';
+  return 'about';
 };
 
 /**
- * 获取字数统计和推荐
+ * Character count helper with LinkedIn guidance.
  */
 export const getCharacterCount = (
   content: string,
@@ -187,7 +181,6 @@ export const getCharacterCount = (
       break;
 
     default:
-      // 其他字段没有严格限制
       break;
   }
 

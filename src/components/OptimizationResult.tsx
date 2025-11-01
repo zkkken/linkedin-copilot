@@ -1,7 +1,7 @@
 /**
  * OptimizationResult Component
  *
- * 根据SectionType展示结构化的优化结果
+ * Display structured optimization results per section type
  */
 
 import { useEffect, useState } from 'react';
@@ -24,19 +24,19 @@ import type {
 
 interface OptimizationResultProps {
   sectionType: SectionType;
-  data: any;                    // 结构化数据或纯文本
+  data: any;                    // Structured data or plain text
 }
 
 type TabType = 'final' | 'suggestions';
 
 /**
- * 优化建议展示组件
+ * Optimization suggestions view component
  */
 const SuggestionsView: React.FC<{ suggestions: OptimizationSuggestion[] }> = ({ suggestions }) => {
   if (!suggestions || suggestions.length === 0) {
     return (
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
-        暂无优化建议
+        No optimization suggestions yet
       </div>
     );
   }
@@ -56,19 +56,19 @@ const SuggestionsView: React.FC<{ suggestions: OptimizationSuggestion[] }> = ({ 
                 </span>
               </div>
               <p className="text-sm text-gray-700">
-                <strong className="text-[#0A66C2]">原因：</strong>{suggestion.reason}
+                <strong className="text-[#0A66C2]">Reason: </strong>{suggestion.reason}
               </p>
               <p className="text-sm text-gray-700">
-                <strong className="text-[#0A66C2]">改进：</strong>{suggestion.improvement}
+                <strong className="text-[#0A66C2]">Improvement: </strong>{suggestion.improvement}
               </p>
               {suggestion.before && (
                 <div className="mt-2 pl-3 border-l-2 border-red-300 bg-red-50 p-2 rounded">
-                  <p className="text-xs text-red-700"><strong>修改前：</strong>{suggestion.before}</p>
+                  <p className="text-xs text-red-700"><strong>Before: </strong>{suggestion.before}</p>
                 </div>
               )}
               {suggestion.after && (
                 <div className="mt-1 pl-3 border-l-2 border-green-300 bg-green-50 p-2 rounded">
-                  <p className="text-xs text-green-700"><strong>修改后：</strong>{suggestion.after}</p>
+                  <p className="text-xs text-green-700"><strong>After: </strong>{suggestion.after}</p>
                 </div>
               )}
             </div>
@@ -88,15 +88,15 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
   useEffect(() => {
     setActiveExperienceIndex(0);
-    setActiveTab('final'); // 切换字段时重置为最终版本tab
+    setActiveTab('final'); // Reset to final tab when switching sections
   }, [sectionType, data]);
 
-  // 如果是降级处理（纯文本）
+  // Handle downgraded plain-text responses
   if (data?.plainText || data?._fallback) {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-900">优化结果</h3>
+          <h3 className="text-lg font-bold text-gray-900">Optimization Result</h3>
           <CopyButton text={data.plainText} />
         </div>
         <div className="p-4 bg-white border-2 border-gray-200 rounded-lg">
@@ -110,14 +110,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
         </div>
         {data._fallback && (
           <div className="p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-            ⚠️ AI未返回结构化数据，已降级为纯文本展示。您仍可使用此优化建议。
+            ⚠️ AI did not return structured data. Showing plain-text fallback that you can still use.
           </div>
         )}
       </div>
     );
   }
 
-  // Tab切换按钮组件
+  // Tab toggle component
   const TabButtons = () => (
     <div className="flex border-b border-gray-200 mb-4">
       <button
@@ -128,7 +128,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             : 'text-gray-500 hover:text-gray-700'
         }`}
       >
-        📋 最终版本
+        📋 Final version
       </button>
       <button
         onClick={() => setActiveTab('suggestions')}
@@ -138,12 +138,12 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             : 'text-gray-500 hover:text-gray-700'
         }`}
       >
-        💡 优化建议
+        💡 Suggestions
       </button>
     </div>
   );
 
-  // 根据不同的SectionType渲染不同的结构
+  // Render different layouts for each section type
   switch (sectionType) {
     case 'headline':
       const headlineData = data as LinkedInHeadlineStructured;
@@ -152,7 +152,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">🎯</span>
-              优化后的LinkedIn标题选项
+              Optimized LinkedIn headline options
             </h3>
           </div>
 
@@ -161,12 +161,12 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <p className="text-sm text-gray-600">
-                AI生成了{headlineData.options?.length || 0}个优化选项，您可以选择最适合的一个：
+                AI generated {headlineData.options?.length || 0} optimized option(s). Pick the one that fits best:
               </p>
               {headlineData.options?.map((option, index) => (
                 <StructuredField
                   key={index}
-                  label={`选项 ${index + 1}`}
+                  label={`Option ${index + 1}`}
                   value={option}
                   maxLength={220}
                   icon="💡"
@@ -188,7 +188,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">👤</span>
-              优化后的个人简介
+              Optimized About section
             </h3>
           </div>
 
@@ -197,7 +197,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <StructuredField
-                label="完整简介"
+                label="Full narrative"
                 value={aboutData.optimizedText}
                 maxLength={2600}
                 icon="📝"
@@ -205,7 +205,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
               />
               {aboutData.keyPoints && aboutData.keyPoints.length > 0 && (
                 <div className="p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
-                  <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">✨ 关键亮点</h4>
+                  <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">✨ Key highlights</h4>
                   <ul className="text-sm text-[#0A66C2] space-y-1">
                     {aboutData.keyPoints.map((point, index) => (
                       <li key={index}>• {point}</li>
@@ -242,7 +242,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
       if (!experienceList.length) {
         return (
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-            未能获取到结构化的工作经历，请尝试手动选择单段内容后重新优化。
+            Structured experience data was not detected. Select a single entry and try again.
           </div>
         );
       }
@@ -255,7 +255,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">💼</span>
-              优化后的工作经历
+              Optimized experience entry
             </h3>
             {experienceList.length > 1 && (
               <div className="flex flex-wrap gap-2">
@@ -271,9 +271,9 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
                           ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
                           : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
                       }`}
-                      title={experience.title || `第 ${index + 1} 段`}
+                      title={experience.title || `Entry ${index + 1}`}
                     >
-                      第 {index + 1} 段
+                      Entry {index + 1}
                     </button>
                   );
                 })}
@@ -287,28 +287,28 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             <>
               <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
                 <p className="text-sm text-[#0A66C2] font-medium mb-2">
-                  📋 以下字段可直接复制到LinkedIn工作经历编辑页面
+                  📋 Copy these fields directly into the LinkedIn experience editor
                 </p>
                 <p className="text-xs text-[#0A66C2]">
-                  每个字段右上角都有独立复制按钮，方便逐个粘贴
+                  Each field has an individual copy button for easy pasting.
                 </p>
               </div>
 
               <StructuredField
-                label="职位头衔 (Title)"
+                label="Job Title"
                 value={activeExperience.title}
                 maxLength={100}
                 icon="🎯"
               />
 
               <StructuredField
-                label="职位性质 (Employment Type)"
+                label="Employment Type"
                 value={activeExperience.employmentType}
                 icon="⏰"
               />
 
               <StructuredField
-                label="公司名称 (Company)"
+                label="Company"
                 value={activeExperience.company}
                 maxLength={100}
                 icon="🏢"
@@ -316,14 +316,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {activeExperience.location && (
                 <StructuredField
-                  label="地点 (Location)"
+                  label="Location"
                   value={activeExperience.location}
                   icon="📍"
                 />
               )}
 
               <StructuredField
-                label="工作描述 (Description)"
+                label="Description"
                 value={activeExperience.description}
                 maxLength={2000}
                 icon="📄"
@@ -346,7 +346,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">⚡</span>
-              优化后的技能分类
+              Optimized skill groups
             </h3>
           </div>
 
@@ -363,9 +363,9 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
                         navigator.clipboard.writeText(category.skills.join(', '))
                       }
                       className="p-1.5 rounded bg-[#EAF3FF] hover:bg-[#D8EAFE] text-[#0A66C2] transition-colors text-xs"
-                      title="复制此类别所有技能"
+                      title="Copy all skills in this group"
                     >
-                      复制全部
+                      Copy all
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -374,7 +374,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
                         key={skillIndex}
                         className="px-3 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded-full text-xs font-medium cursor-pointer hover:bg-[#C6DFF8] transition-colors"
                         onClick={() => navigator.clipboard.writeText(skill)}
-                        title="点击复制"
+                        title="Click to copy"
                       >
                         {skill}
                       </span>
@@ -398,7 +398,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">🎓</span>
-              优化后的教育经历
+              Optimized education entry
             </h3>
           </div>
 
@@ -407,14 +407,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <StructuredField
-                label="学位 (Degree)"
+                label="Degree"
                 value={educationData.degree}
                 maxLength={100}
                 icon="📚"
               />
 
               <StructuredField
-                label="学校 (School)"
+                label="School"
                 value={educationData.school}
                 maxLength={100}
                 icon="🏫"
@@ -422,7 +422,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {educationData.fieldOfStudy && (
                 <StructuredField
-                  label="专业领域 (Field of Study)"
+                  label="Field of Study"
                   value={educationData.fieldOfStudy}
                   icon="🔬"
                 />
@@ -430,14 +430,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {educationData.grade && (
                 <StructuredField
-                  label="成绩 (Grade)"
+                  label="Grade"
                   value={educationData.grade}
                   icon="⭐"
                 />
               )}
 
               <StructuredField
-                label="亮点 (Highlights)"
+                label="Highlights"
                 value={educationData.highlights}
                 maxLength={600}
                 icon="✨"
@@ -446,7 +446,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {educationData.activities && (
                 <StructuredField
-                  label="课外活动 (Activities)"
+                  label="Activities"
                   value={educationData.activities}
                   icon="🎯"
                   multiline
@@ -468,7 +468,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">📜</span>
-              优化后的证书认证 (Licenses & Certifications)
+              Optimized licenses & certifications
             </h3>
           </div>
 
@@ -477,14 +477,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <StructuredField
-                label="证书名称 (Name)"
+                label="Certification Name"
                 value={certData.name}
                 maxLength={100}
                 icon="📋"
               />
 
               <StructuredField
-                label="颁发机构 (Organization)"
+                label="Issuing Organization"
                 value={certData.organization}
                 maxLength={100}
                 icon="🏢"
@@ -492,7 +492,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {certData.issueDate && (
                 <StructuredField
-                  label="颁发日期 (Issue Date)"
+                  label="Issue Date"
                   value={certData.issueDate}
                   icon="📅"
                 />
@@ -500,14 +500,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {certData.credentialId && (
                 <StructuredField
-                  label="证书ID (Credential ID)"
+                  label="Credential ID"
                   value={certData.credentialId}
                   icon="🔖"
                 />
               )}
 
               <StructuredField
-                label="适用场景/能力说明 (Description)"
+                label="Applicability / capability summary"
                 value={certData.description}
                 maxLength={200}
                 icon="💡"
@@ -529,7 +529,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">🚀</span>
-              优化后的项目经历
+              Optimized project entry
             </h3>
           </div>
 
@@ -538,7 +538,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <StructuredField
-                label="项目名称 (Name)"
+                label="Project Name"
                 value={projectData.name}
                 maxLength={100}
                 icon="📌"
@@ -546,7 +546,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {projectData.role && (
                 <StructuredField
-                  label="项目角色 (Role)"
+                  label="Project Role"
                   value={projectData.role}
                   icon="👤"
                 />
@@ -554,14 +554,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {projectData.date && (
                 <StructuredField
-                  label="项目时间 (Date)"
+                  label="Timeline"
                   value={projectData.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
-                label="项目描述 (Description)"
+                label="Project Description"
                 value={projectData.description}
                 maxLength={1000}
                 icon="📄"
@@ -570,7 +570,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {projectData.technologies && projectData.technologies.length > 0 && (
                 <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
-                  <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">🛠️ 技术栈</h4>
+                  <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">🛠️ Tech stack</h4>
                   <div className="flex flex-wrap gap-2">
                     {projectData.technologies.map((tech, index) => (
                       <span
@@ -599,7 +599,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">📚</span>
-              优化后的出版物
+              Optimized publication
             </h3>
           </div>
 
@@ -608,14 +608,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <StructuredField
-                label="标题 (Title)"
+                label="Title"
                 value={publicationData.title}
                 maxLength={100}
                 icon="📖"
               />
 
               <StructuredField
-                label="出版商/平台 (Publisher)"
+                label="Publisher"
                 value={publicationData.publisher}
                 maxLength={100}
                 icon="🏢"
@@ -623,14 +623,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {publicationData.date && (
                 <StructuredField
-                  label="发表日期 (Date)"
+                  label="Publication Date"
                   value={publicationData.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
-                label="简介 (Description)"
+                label="Summary"
                 value={publicationData.description}
                 maxLength={500}
                 icon="📝"
@@ -658,7 +658,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">🏆</span>
-              优化后的荣誉奖项 (Honors & Awards)
+              Optimized honors & awards entry
             </h3>
           </div>
 
@@ -667,14 +667,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <StructuredField
-                label="奖项名称 (Title)"
+                label="Award Title"
                 value={awardData.title}
                 maxLength={100}
                 icon="🏅"
               />
 
               <StructuredField
-                label="颁发机构 (Issuer)"
+                label="Issuer"
                 value={awardData.issuer}
                 maxLength={100}
                 icon="🏢"
@@ -682,14 +682,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {awardData.date && (
                 <StructuredField
-                  label="获奖日期 (Date)"
+                  label="Award Date"
                   value={awardData.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
-                label="获奖原因/意义 (Description)"
+                label="Recognition Summary"
                 value={awardData.description}
                 maxLength={300}
                 icon="✨"
@@ -711,7 +711,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900 flex items-center">
               <span className="mr-2">🤝</span>
-              优化后的志愿经历 (Volunteer Experience)
+              Optimized volunteer experience
             </h3>
           </div>
 
@@ -720,14 +720,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           {activeTab === 'final' && (
             <>
               <StructuredField
-                label="志愿角色 (Role)"
+                label="Volunteer Role"
                 value={volunteerData.role}
                 maxLength={100}
                 icon="👤"
               />
 
               <StructuredField
-                label="组织名称 (Organization)"
+                label="Organization"
                 value={volunteerData.organization}
                 maxLength={100}
                 icon="🏢"
@@ -735,7 +735,7 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {volunteerData.cause && (
                 <StructuredField
-                  label="公益领域 (Cause)"
+                  label="Cause"
                   value={volunteerData.cause}
                   icon="💚"
                 />
@@ -743,14 +743,14 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
               {volunteerData.date && (
                 <StructuredField
-                  label="时间 (Date)"
+                  label="Date"
                   value={volunteerData.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
-                label="经历描述 (Description)"
+                label="Experience Description"
                 value={volunteerData.description}
                 maxLength={600}
                 icon="📄"
@@ -765,12 +765,11 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
         </div>
       );
 
-    case 'general':
     default:
       return (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900">优化结果</h3>
+            <h3 className="text-lg font-bold text-gray-900">Optimization Result</h3>
             <CopyButton text={data.plainText || ''} />
           </div>
           <div className="p-4 bg-white border-2 border-gray-200 rounded-lg">

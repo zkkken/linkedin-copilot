@@ -1,15 +1,15 @@
 /**
  * StructuredField Component
  *
- * 展示单个LinkedIn字段（带标签、内容、复制按钮和字符计数）
+ * Render a single LinkedIn field (label, content, copy button, and character count)
  */
 
 interface StructuredFieldProps {
-  label: string;              // 字段标签（如"职位头衔"）
-  value?: string;             // 字段值
-  maxLength?: number;         // 最大字符数限制（可选）
-  icon?: string;              // 可选图标emoji
-  multiline?: boolean;        // 是否多行显示
+  label: string;              // Field label (e.g., "Job title")
+  value?: string;             // Field value
+  maxLength?: number;         // Optional character limit
+  icon?: string;              // Optional emoji icon
+  multiline?: boolean;        // Render multi-line content
 }
 
 export const StructuredField: React.FC<StructuredFieldProps> = ({
@@ -26,14 +26,14 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
 
   return (
     <div className="mb-4 p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-[#0A66C2] transition-colors">
-      {/* 标签和复制按钮 */}
+      {/* Label and copy button */}
       <div className="flex items-center justify-between mb-2">
         <label className="text-sm font-semibold text-gray-700 flex items-center">
           {icon && <span className="mr-2">{icon}</span>}
           {label}
         </label>
         <div className="flex items-center space-x-2">
-          {/* 字符计数 */}
+          {/* Character count */}
           {maxLength && (
             <span
               className={`text-xs font-medium px-2 py-1 rounded ${
@@ -47,11 +47,11 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
               {currentLength}/{maxLength}
             </span>
           )}
-          {/* 复制按钮（小尺寸） */}
+          {/* Copy button (compact) */}
           <button
             onClick={() => navigator.clipboard.writeText(safeValue)}
             className="p-1.5 rounded bg-[#EAF3FF] hover:bg-[#D8EAFE] text-[#0A66C2] transition-colors"
-            title="复制此字段"
+            title="Copy this field"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -65,7 +65,7 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
         </div>
       </div>
 
-      {/* 字段内容 */}
+      {/* Field content */}
       {multiline ? (
         <div className="p-3 bg-gray-50 rounded border border-gray-200 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
           {safeValue.split('\n').map((line, index) => (
@@ -80,7 +80,7 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
         </div>
       )}
 
-      {/* 超出限制警告 */}
+      {/* Limit warning */}
       {isOverLimit && (
         <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700 flex items-start">
           <svg className="w-4 h-4 mr-1 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +91,7 @@ export const StructuredField: React.FC<StructuredFieldProps> = ({
               d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
             />
           </svg>
-          超出LinkedIn字符限制 {currentLength - maxLength!} 个字符，请手动编辑缩短
+          Exceeds the LinkedIn character limit by {currentLength - maxLength!} characters. Please shorten manually.
         </div>
       )}
     </div>
