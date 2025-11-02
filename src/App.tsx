@@ -1,6 +1,4 @@
 ﻿import { useState, useEffect } from 'react';
-// 1. Import the updated model instance and screenshot analyzer from firebase.ts
-import { model, analyzeScreenshot } from './firebase';
 import { FileUpload } from './components/FileUpload';
 import { PrivacyConsent } from './components/PrivacyConsent';
 import { CopyButton } from './components/CopyButton';
@@ -11,11 +9,14 @@ import { UserGuide } from './components/UserGuide';
 import { InputModeSelector, type InputMode } from './components/InputModeSelector';
 import { ScreenshotDisclaimer } from './components/ScreenshotDisclaimer';
 import { OptimizationResult } from './components/OptimizationResult';
+import { SettingsPage } from './components/SettingsPage';
 import { generatePrompt, detectSectionType } from './utils/promptTemplates';
 import { generateStructuredPrompt, parseStructuredResponse } from './utils/structuredPrompts';
 import { getSectionConfig } from './utils/sectionConfigs';
 import { captureCurrentTab, isLinkedInPage } from './utils/screenshotCapture';
 import type { SectionType } from './types';
+import { getProvider } from './providers/aiProviders';
+import { canMakeRequest, incrementUsage, getQuotaStatus, formatResetTime } from './utils/quotaManager';
 
 type SectionEntriesMap = Partial<Record<SectionType, string[]>>;
 
@@ -227,6 +228,9 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
   // User guide state
   const [showUserGuide, setShowUserGuide] = useState(false);
 
+  // Settings page state
+  const [showSettings, setShowSettings] = useState(false);
+
   // Input mode state
   const [inputMode, setInputMode] = useState<InputMode>('manual');
 
@@ -423,6 +427,30 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     setStructuredResult(null);
 
     try {
+      // 🆕 Check quota before making request
+      const canProceed = await canMakeRequest();
+      if (!canProceed) {
+        const quotaStatus = await getQuotaStatus();
+        setOptimizedText(
+          `❌ Daily limit reached (${quotaStatus.dailyLimit} optimizations/day)\n\n` +
+          `Resets ${formatResetTime(quotaStatus.resetTime)}\n\n` +
+          `💡 To get unlimited usage:\n` +
+          `• Click the Settings ⚙️ button above\n` +
+          `• Choose a custom AI provider (Your Own Firebase, OpenAI, or Claude)\n` +
+          `• Enter your API key\n\n` +
+          `This way you control the costs and have no daily limits!`
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // Get current provider configuration
+      const { aiProvider = 'default', aiProviderConfig = {} } =
+        await chrome.storage.local.get(['aiProvider', 'aiProviderConfig']);
+
+      const provider = getProvider(aiProvider);
+      console.log('Using provider:', provider.name);
+
       // 🆕 Smart content selection: fall back to full PDF content when field is empty
       const contentToOptimize = resumeContent.trim()
         ? resumeContent
@@ -435,12 +463,11 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
 
       console.log('Prompt type:', useStructuredOutput ? 'structured' : 'standard');
 
-      // Call generateContent with the imported model
-      const result = await model.generateContent(prompt);
+      // Call AI provider
+      const text = await provider.generateContent(prompt, aiProviderConfig);
 
-      // Extract optimized text from response
-      const response = result.response;
-      const text = response.text();
+      // Increment usage counter (only for default provider)
+      await incrementUsage();
 
       console.log('Raw AI response:', text);
 
@@ -539,9 +566,48 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     setOptimizedText('Capturing screenshot...');
 
     try {
+      // 🆕 Check quota before making request
+      const canProceed = await canMakeRequest();
+      if (!canProceed) {
+        const quotaStatus = await getQuotaStatus();
+        setOptimizedText(
+          `❌ Daily limit reached (${quotaStatus.dailyLimit} optimizations/day)\n\n` +
+          `Resets ${formatResetTime(quotaStatus.resetTime)}\n\n` +
+          `💡 To get unlimited usage, use your own API key via Settings ⚙️`
+        );
+        setIsCapturing(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // Get current provider configuration
+      const { aiProvider = 'default', aiProviderConfig = {} } =
+        await chrome.storage.local.get(['aiProvider', 'aiProviderConfig']);
+
+      const provider = getProvider(aiProvider);
+
+      // Check if provider supports vision
+      if (!provider.supportsVision || !provider.analyzeImage) {
+        setOptimizedText(
+          `❌ Screenshot mode requires Vision API support\n\n` +
+          `Current provider: ${provider.name}\n\n` +
+          `💡 Supported providers:\n` +
+          `• Default (Free Tier)\n` +
+          `• Your Own Firebase\n` +
+          `• OpenAI GPT-4o / GPT-4-turbo\n` +
+          `• Anthropic Claude 3.5\n\n` +
+          `Change provider in Settings ⚙️`
+        );
+        setIsCapturing(false);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Using provider for screenshot:', provider.name);
+
       // 1. Capture screenshot
       const captureResult = await captureCurrentTab();
-      setOptimizedText('Screenshot captured. Analyzing with Gemini Vision API...');
+      setOptimizedText(`Screenshot captured. Analyzing with ${provider.name}...`);
 
       // 2. Build analysis prompt (extract text)
       const visionPrompt = `
@@ -564,8 +630,11 @@ Tasks:
 5. Preserve the original formatting, including line breaks and bullet characters.
 `;
 
-      // 3. Call Vision API for analysis
-      const analysisResult = await analyzeScreenshot(captureResult.dataUrl, visionPrompt);
+      // 3. Call provider's vision API for analysis
+      const analysisResult = await provider.analyzeImage!(captureResult.dataUrl, visionPrompt, aiProviderConfig);
+
+      // Increment usage counter (only for default provider)
+      await incrementUsage();
 
       // 4. Parse Vision API JSON response
       try {
@@ -723,6 +792,9 @@ Tasks:
       {/* User guide modal */}
       {showUserGuide && <UserGuide onClose={handleCloseUserGuide} />}
 
+      {/* Settings page modal */}
+      {showSettings && <SettingsPage onClose={() => setShowSettings(false)} />}
+
       {/* Privacy consent modal */}
       {showConsentModal && <PrivacyConsent onConsent={handleConsentResponse} />}
 
@@ -749,17 +821,33 @@ Tasks:
                 <p className="text-xs text-gray-500">AI-powered resume optimization</p>
               </div>
             </div>
-            {/* Help button */}
-            <button
-              onClick={() => setShowUserGuide(true)}
-              className="p-2 rounded-lg text-gray-600 hover:bg-[#EAF3FF] hover:text-[#0A66C2] transition-all"
-              title="View user guide"
-              aria-label="View user guide"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
+            {/* Action buttons */}
+            <div className="flex items-center space-x-2">
+              {/* Settings button */}
+              <button
+                onClick={() => setShowSettings(true)}
+                className="p-2 rounded-lg text-gray-600 hover:bg-[#EAF3FF] hover:text-[#0A66C2] transition-all"
+                title="Settings & AI Provider"
+                aria-label="Settings"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+
+              {/* Help button */}
+              <button
+                onClick={() => setShowUserGuide(true)}
+                className="p-2 rounded-lg text-gray-600 hover:bg-[#EAF3FF] hover:text-[#0A66C2] transition-all"
+                title="View user guide"
+                aria-label="View user guide"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -827,6 +915,34 @@ Tasks:
             <p className="text-xs text-[#0A66C2] mb-3">
               Use Gemini Vision API to analyze your LinkedIn screenshot and extract<strong>「{getSectionConfig(currentSection).label}」</strong>content, then deliver tailored suggestions.
             </p>
+
+            {/* 💡 Page Zoom Tip */}
+            <div className="mb-3 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+              <h4 className="text-xs font-bold text-yellow-900 flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                💡 Pro tip: Zoom out to capture more content
+              </h4>
+              <ul className="text-xs text-yellow-800 mt-2 space-y-1">
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>Press <kbd className="px-1.5 py-0.5 bg-white rounded border border-yellow-300 text-[11px] font-mono">Ctrl -</kbd> (Windows) or <kbd className="px-1.5 py-0.5 bg-white rounded border border-yellow-300 text-[11px] font-mono">Cmd -</kbd> (Mac) to zoom out</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>Recommended zoom: <strong>67-75%</strong> for sections like Experience, Education, Skills</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span>Or use browser menu (⋮ → Zoom) to adjust page size</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="mr-2">•</span>
+                  <span className="text-yellow-700">📸 Lower zoom = more content in one screenshot = better AI analysis</span>
+                </li>
+              </ul>
+            </div>
 
             {/* 📌 Screenshot preparation guidance */}
             <div className="mb-3 p-3 bg-indigo-50 border-l-4 border-indigo-400 rounded space-y-2">

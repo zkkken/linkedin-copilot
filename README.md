@@ -104,7 +104,7 @@
 
 1. **克隆项目**
 ```bash
-git clone https://github.com/yourusername/linkedin-copilot.git
+git clone https://github.com/zkkken/linkedin-copilot.git
 cd linkedin-copilot
 ```
 

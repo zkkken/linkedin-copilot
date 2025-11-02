@@ -5,13 +5,12 @@ import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
 // 3. Firebase project configuration (from your console)
 const firebaseConfig = {
-  apiKey: "AIzaSyBovSw6r0EJcgiDmbuYF-fmAe2F_ahYg-M",
-  authDomain: "hackthon-d6c87.firebaseapp.com",
-  projectId: "hackthon-d6c87",
-  storageBucket: "hackthon-d6c87.firebasestorage.app",
-  messagingSenderId: "802867061983",
-  appId: "1:802867061983:web:e17d94a6576399c8b1b56a",
-  measurementId: "G-217M2SM7N1"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 // 4. Initialize Firebase App
