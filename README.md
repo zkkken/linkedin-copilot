@@ -299,22 +299,6 @@ linkedin-copilot/
 
 ---
 
-## 🎨 截图
-
-### 主界面
-![主界面](screenshots/main-interface.png)
-
-### PDF 上传
-![PDF上传](screenshots/pdf-upload.png)
-
-### 隐私同意
-![隐私同意](screenshots/privacy-consent.png)
-
-### AI 优化结果
-![优化结果](screenshots/optimization-result.png)
-
----
-
 ## 🧪 开发指南
 
 ### 可用脚本
@@ -346,17 +330,6 @@ npm run preview
 - `src/utils/` - 工具函数
 - `.claude/` - 开发文档和指南
 - `public/` - 静态资源
-
----
-
-## 📚 文档
-
-详细文档请查看：
-
-- [完整开发指南](.claude/claude.md)
-- [PDF 解析功能](PDF_FEATURE.md)
-- [隐私同意功能](PRIVACY_CONSENT.md)
-- [第二天完成总结](DAY2_COMPLETION.md)
 
 ---
 
@@ -436,59 +409,7 @@ chrome.storage.local.remove(['privacyConsentGiven', 'consentTimestamp']);
 
 - **项目地址**: [GitHub](https://github.com/yourusername/linkedin-copilot)
 - **问题反馈**: [Issues](https://github.com/yourusername/linkedin-copilot/issues)
-- **邮箱**: your.email@example.com
-
----
-
-## 📊 项目状态
-
-- **版本**: 2.0.0
-- **状态**: ✅ 核心功能全部完成（含截图功能）
-- **下一步**: 演示视频制作 + Devpost 提交
-
----
-
-## 🗓️ 开发日志
-
-### 第一天 ✅
-- [x] 项目初始化（Vite + React + TypeScript）
-- [x] Firebase AI Logic 集成
-- [x] Gemini 2.5 Flash 模型接入
-- [x] 基础 UI 实现
-- [x] 端到端测试
-
-### 第二天 ✅
-- [x] PDF 客户端解析功能（PDF.js）
-- [x] 隐私同意弹窗（Prominent Disclosure）
-- [x] 高级提示工程（STAR 方法）
-- [x] UI 改进（复制按钮、加载动画、字符计数）
-- [x] 多字段类型支持（Headline/About/Experience/Skills）
-- [x] 用户引导系统
-
-### 第三天 ✅（当前）
-- [x] **截图功能实现**
-  - [x] 截图捕获工具（screenshotCapture.ts）
-  - [x] Gemini Vision API 集成
-  - [x] 输入模式选择器（三种模式）
-  - [x] 截图免责声明弹窗
-  - [x] LinkedIn 页面检测
-  - [x] OCR 识别和分析
-- [x] **完整的免责声明**
-- [x] **构建测试通过**
-- [x] **README 文档更新**
-
-### 待完成 📅
-- [ ] 录制演示视频（3分钟）
-  - [ ] 演示三种输入模式
-  - [ ] 展示截图功能（核心亮点）
-  - [ ] 说明技术架构
-- [ ] Devpost 提交
-  - [ ] 项目描述
-  - [ ] 技术说明
-  - [ ] 演示视频链接
-  - [ ] GitHub 仓库链接
-
----
+- **邮箱**: zkken0329@gmail.com
 
 <p align="center">
   Made with ❤️ for Google Hackathon
