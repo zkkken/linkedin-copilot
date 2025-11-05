@@ -9,113 +9,126 @@
 
 ---
 
-## 📋 项目概览
+## 📋 Project Overview
 
-**LinkedIn Safe Co-Pilot** 是一个完全符合 Chrome 网上应用店隐私和安全政策的浏览器扩展。它利用 **Google Gemini API**，在客户端安全地分析用户的简历和目标职位描述，提供高质量的 AI 优化建议，帮助用户在求职中脱颖而出。
+**LinkedIn Safe Co-Pilot** is a browser extension that fully complies with Chrome Web Store privacy and security policies. It leverages **Google Gemini API** to securely analyze users' resumes and target job descriptions on the client side, providing high-quality AI optimization suggestions to help users stand out in job hunting.
 
-### 核心特点
+### Core Features
 
-- 🔒 **隐私优先**: PDF 简历在本地处理，绝不上传
-- 🎯 **AI 驱动**: Google Gemini 2.5 Flash 提供智能优化
-- ✅ **完全合规**: 符合 Chrome 商店政策和 Manifest V3
-- 🚀 **谷歌生态**: Firebase AI Logic 安全代理 API 密钥
-- 💼 **STAR 方法**: 专业的职业顾问级别优化建议
-
----
-
-## ✨ 功能特性
-
-### 1. 📋 三种输入模式
-
-#### 🟢 手动输入（推荐）
-- 最安全、最合规的方式
-- 直接粘贴简历内容
-- 适用于所有场景
-
-#### 🔵 PDF 上传（安全）
-- 客户端 PDF 文件解析（使用 PDF.js）
-- 实时解析进度显示
-- 支持最大 5MB 文件
-- 完全本地处理，不上传
-
-#### 🟡 LinkedIn 快照（实验性）
-- ⚠️ **仅用于演示目的**
-- 使用 Gemini Vision API 分析截图
-- 自动 OCR 识别页面内容
-- **需要明确同意免责声明**
-- 不推荐用于生产环境
-
-### 2. 🤖 AI 智能优化
-- **STAR 方法**（Situation, Task, Action, Result）
-- 可量化成就导向
-- 职位描述关键词匹配
-- 专业动词和术语优化
-- 3-5 条精炼的优化建议
-
-### 3. 🔐 隐私保护
-- 首次使用前显著披露（Prominent Disclosure）
-- 用户同意机制
-- 数据仅发送至 Gemini API
-- 完全透明的隐私条款
-- 截图功能额外免责声明
-
-### 4. 💎 优秀体验
-- LinkedIn 风格 UI 设计
-- 一键复制优化结果
-- 优雅的加载动画
-- 智能状态提示（成功/错误/等待）
-- 响应式布局
-- 多模式智能切换
+- 🔒 **Privacy First**: PDF resumes processed locally, never uploaded
+- 🎯 **AI Powered**: Google Gemini 2.5 Flash provides intelligent optimization
+- ✅ **Fully Compliant**: Meets Chrome Store policies and Manifest V3
+- 🚀 **Google Ecosystem**: Firebase AI Logic securely proxies API keys
+- 💼 **STAR Method**: Professional career advisor-level optimization suggestions
+- 🔄 **Flexible AI Options**: Switch between different AI providers in settings
 
 ---
 
-## 🛠️ 技术栈
+## ✨ Features
 
-### 前端框架
-- **React 19.1.1** - 最新 UI 库
-- **TypeScript 5.9.3** - 类型安全
-- **Tailwind CSS 4.1.16** - 现代化样式
-- **Vite 7.1.7** - 闪电般的构建工具
+### 1. 📋 Three Input Modes
 
-### Chrome 扩展
-- **Manifest V3** - 最新扩展规范
-- **@crxjs/vite-plugin 2.2.1** - 自动化构建和热更新
+#### 🟢 Manual Input (Recommended)
+- The safest and most compliant method
+- Directly paste resume content
+- Suitable for all scenarios
 
-### AI 服务
+#### 🔵 PDF Upload (Safe)
+- Client-side PDF file parsing (using PDF.js)
+- Real-time parsing progress display
+- Supports files up to 5MB
+- Fully local processing, no upload
+
+#### 🟡 LinkedIn Snapshot (Experimental)
+- ⚠️ **For demonstration purposes only**
+- Analyzes screenshots using Gemini Vision API
+- Automatic OCR for page content recognition
+- **Requires explicit disclaimer consent**
+- Not recommended for production environment
+
+### 2. 🤖 AI Intelligent Optimization
+- **STAR Method** (Situation, Task, Action, Result)
+- Quantifiable achievement-oriented
+- Job description keyword matching
+- Professional verb and terminology optimization
+- 3-5 refined optimization suggestions
+
+### 3. 🔧 Customizable AI Settings
+- **Multiple AI Provider Support**: Switch between different AI services
+- **Custom API Configuration**: Use your own API keys for various AI platforms
+- **Flexible Model Selection**: Choose from different AI models based on your needs
+- **Settings Management**: Easy-to-use interface for managing AI provider preferences
+- Compatible with:
+  - Google Gemini (default)
+  - OpenAI GPT
+  - Anthropic Claude
+  - Other compatible AI services
+
+### 4. 🔐 Privacy Protection
+- Prominent disclosure before first use
+- User consent mechanism
+- Data only sent to selected AI API
+- Completely transparent privacy terms
+- Additional disclaimer for screenshot function
+
+### 5. 💎 Excellent Experience
+- LinkedIn-style UI design
+- One-click copy optimization results
+- Elegant loading animations
+- Smart status indicators (success/error/waiting)
+- Responsive layout
+- Intelligent multi-mode switching
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend Framework
+- **React 19.1.1** - Latest UI library
+- **TypeScript 5.9.3** - Type safety
+- **Tailwind CSS 4.1.16** - Modern styling
+- **Vite 7.1.7** - Lightning-fast build tool
+
+### Chrome Extension
+- **Manifest V3** - Latest extension specification
+- **@crxjs/vite-plugin 2.2.1** - Automated build and hot reload
+
+### AI Services
 - **Firebase 12.4.0** - Firebase AI SDK
-- **Google Gemini 2.5 Flash** - 最新 AI 模型
-- **Firebase AI Logic** - 安全 API 代理
+- **Google Gemini 2.5 Flash** - Latest AI model (default)
+- **Firebase AI Logic** - Secure API proxy
+- **Multi-provider Support** - OpenAI, Anthropic, and more
 
-### 工具库
-- **PDF.js** - 客户端 PDF 解析
-- **@types/chrome** - Chrome 扩展类型定义
+### Utility Libraries
+- **PDF.js** - Client-side PDF parsing
+- **@types/chrome** - Chrome extension type definitions
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 环境要求
+### Requirements
 
 - Node.js >= 18.0.0
 - npm >= 9.0.0
-- Chrome/Chromium 浏览器
+- Chrome/Chromium browser
 
-### 安装步骤
+### Installation Steps
 
-1. **克隆项目**
+1. **Clone the project**
 ```bash
 git clone https://github.com/zkkken/linkedin-copilot.git
 cd linkedin-copilot
 ```
 
-2. **安装依赖**
+2. **Install dependencies**
 ```bash
 npm install
 ```
 
-3. **配置 Firebase**
+3. **Configure Firebase**
 
-在 `src/firebase.ts` 中填入你的 Firebase 配置：
+Fill in your Firebase configuration in `src/firebase.ts`:
 ```typescript
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
@@ -127,294 +140,307 @@ const firebaseConfig = {
 };
 ```
 
-4. **开发模式**
+4. **Development mode**
 ```bash
 npm run dev
 ```
 
-5. **加载扩展**
-   - 访问 `chrome://extensions`
-   - 启用"开发者模式"
-   - 点击"加载已解压的扩展程序"
-   - 选择项目的 `dist/` 文件夹
+5. **Load extension**
+   - Visit `chrome://extensions`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the project's `dist/` folder
 
-### 生产构建
+### Production Build
 
 ```bash
 npm run build
 ```
 
-构建产物在 `dist/` 目录，可直接打包上传到 Chrome 商店。
+The build output is in the `dist/` directory, ready to be packaged and uploaded to Chrome Web Store.
 
 ---
 
-## 📁 项目结构
+## 📁 Project Structure
 
 ```
 linkedin-copilot/
 ├── src/
-│   ├── components/                 # React 组件
-│   │   ├── FileUpload.tsx          # PDF 上传组件
-│   │   ├── PrivacyConsent.tsx      # AI 隐私同意弹窗
-│   │   ├── ScreenshotDisclaimer.tsx # 截图免责声明弹窗
-│   │   ├── InputModeSelector.tsx   # 输入模式选择器
-│   │   ├── SectionSelector.tsx     # 字段类型选择器
-│   │   ├── CopyButton.tsx          # 复制按钮
-│   │   ├── LoadingSpinner.tsx      # 加载动画
-│   │   ├── CharacterCount.tsx      # 字符计数
-│   │   └── UserGuide.tsx           # 用户引导
+│   ├── components/                 # React components
+│   │   ├── FileUpload.tsx          # PDF upload component
+│   │   ├── PrivacyConsent.tsx      # AI privacy consent dialog
+│   │   ├── ScreenshotDisclaimer.tsx # Screenshot disclaimer dialog
+│   │   ├── InputModeSelector.tsx   # Input mode selector
+│   │   ├── SectionSelector.tsx     # Field type selector
+│   │   ├── CopyButton.tsx          # Copy button
+│   │   ├── LoadingSpinner.tsx      # Loading animation
+│   │   ├── CharacterCount.tsx      # Character counter
+│   │   └── UserGuide.tsx           # User guide
 │   ├── utils/
-│   │   ├── pdfParser.ts            # PDF 解析工具
-│   │   ├── screenshotCapture.ts    # 截图捕获工具
-│   │   ├── promptTemplates.ts      # AI 提示词模板
-│   │   └── sectionConfigs.ts       # 字段配置
+│   │   ├── pdfParser.ts            # PDF parsing utility
+│   │   ├── screenshotCapture.ts    # Screenshot capture utility
+│   │   ├── promptTemplates.ts      # AI prompt templates
+│   │   └── sectionConfigs.ts       # Section configurations
 │   ├── types/
-│   │   └── index.ts                # TypeScript 类型定义
-│   ├── App.tsx                     # 主应用组件
-│   ├── firebase.ts                 # Firebase + Vision API 配置
-│   ├── main.tsx                    # 应用入口
-│   └── index.css                   # 全局样式
+│   │   └── index.ts                # TypeScript type definitions
+│   ├── App.tsx                     # Main application component
+│   ├── firebase.ts                 # Firebase + Vision API configuration
+│   ├── main.tsx                    # Application entry point
+│   └── index.css                   # Global styles
 ├── public/
 │   └── pdf.worker.min.mjs          # PDF.js Worker
 ├── .claude/
-│   └── CLAUDE.md                   # 完整开发指南
-├── manifest.json                   # Chrome 扩展配置（Manifest V3）
-├── vite.config.ts                  # Vite 构建配置
-├── tailwind.config.js              # Tailwind CSS 配置
-├── tsconfig.json                   # TypeScript 配置
-└── package.json                    # 项目依赖
+│   └── CLAUDE.md                   # Complete development guide
+├── manifest.json                   # Chrome extension config (Manifest V3)
+├── vite.config.ts                  # Vite build configuration
+├── tailwind.config.js              # Tailwind CSS configuration
+├── tsconfig.json                   # TypeScript configuration
+└── package.json                    # Project dependencies
 ```
 
 ---
 
-## 📖 使用指南
+## 📖 User Guide
 
-### 选择输入模式
+### Choose Input Mode
 
-打开扩展后，首先选择三种输入模式之一：
+After opening the extension, first select one of three input modes:
 
-#### 模式 1: 🟢 手动输入（推荐）
+#### Mode 1: 🟢 Manual Input (Recommended)
 
-1. 选择"手动输入"模式
-2. 在文本框中粘贴你的简历内容
-3. （可选）添加目标职位描述
-4. 点击"✨ 使用 Gemini AI 优化"
-5. 复制优化结果到 LinkedIn
+1. Select "Manual Input" mode
+2. Paste your resume content in the text box
+3. (Optional) Add target job description
+4. Click "✨ Optimize with Gemini AI"
+5. Copy optimized results to LinkedIn
 
-#### 模式 2: 🔵 PDF 上传（安全）
+#### Mode 2: 🔵 PDF Upload (Safe)
 
-1. 选择"PDF上传"模式
-2. 点击"上传 PDF 简历"按钮
-3. 选择你的简历文件（最大 5MB）
-4. 等待自动解析完成
-5. （可选）添加目标职位描述
-6. 点击"✨ 使用 Gemini AI 优化"
-7. 复制优化结果到 LinkedIn
+1. Select "PDF Upload" mode
+2. Click "Upload PDF Resume" button
+3. Select your resume file (max 5MB)
+4. Wait for automatic parsing to complete
+5. (Optional) Add target job description
+6. Click "✨ Optimize with Gemini AI"
+7. Copy optimized results to LinkedIn
 
-#### 模式 3: 🟡 LinkedIn 快照（实验性）
+#### Mode 3: 🟡 LinkedIn Snapshot (Experimental)
 
-⚠️ **重要声明**：此功能仅用于技术演示，不推荐实际使用。
+⚠️ **Important Notice**: This feature is for technical demonstration only, not recommended for actual use.
 
-1. 选择"LinkedIn快照"模式
-2. 打开你的 LinkedIn 个人资料页面
-3. 点击"📸 捕获 LinkedIn 页面"
-4. 阅读并同意免责声明
-5. 等待 Gemini Vision API 分析截图
-6. 查看 OCR 识别结果和优化建议
+1. Select "LinkedIn Snapshot" mode
+2. Open your LinkedIn profile page
+3. Click "📸 Capture LinkedIn Page"
+4. Read and agree to the disclaimer
+5. Wait for Gemini Vision API to analyze the screenshot
+6. View OCR recognition results and optimization suggestions
 
-**使用前必读**：
-- ⚠️ 可能违反 LinkedIn 服务条款
-- ⚠️ 仅在你自己的页面使用
-- ⚠️ 不要用于商业目的
-- ⚠️ 我们不对账号问题负责
-- ✅ 推荐使用手动输入或 PDF 上传
+**Must Read Before Use**:
+- ⚠️ May violate LinkedIn Terms of Service
+- ⚠️ Only use on your own page
+- ⚠️ Do not use for commercial purposes
+- ⚠️ We are not responsible for account issues
+- ✅ Manual input or PDF upload recommended
 
-### 隐私同意
+### Configure AI Settings
 
-首次使用任何 AI 功能时会弹出隐私同意窗口，请仔细阅读并点击"我同意"。
+Access the settings to customize your AI provider:
 
----
+1. Click the settings icon in the extension
+2. Choose from available AI providers:
+   - Google Gemini (default)
+   - OpenAI GPT
+   - Anthropic Claude
+   - Custom API endpoint
+3. Enter your API key for the selected provider
+4. Save and start using your preferred AI service
 
-## ⚠️ 免责声明
+### Privacy Consent
 
-### 截图功能（LinkedIn 快照）
-
-**本功能仅供教育和技术演示目的。**
-
-#### 风险提示
-
-1. **服务条款风险**
-   - 使用截图功能可能违反 LinkedIn 的服务条款
-   - LinkedIn 禁止使用自动化工具访问或抓取其服务
-   - 虽然截图是用户主动操作，但仍存在灰色地带
-
-2. **账号安全**
-   - 我们不对因使用此功能导致的账号问题负责
-   - LinkedIn 有权暂停或终止违反其条款的账号
-   - 建议仅在测试环境或个人页面使用
-
-3. **数据隐私**
-   - 截图会包含页面上的所有可见信息
-   - 数据将通过 Firebase AI Logic 发送至 Google Gemini Vision API
-   - 虽然不存储，但会在传输过程中处理
-
-#### 推荐使用方式
-
-✅ **Hackathon 评审演示**：作为技术能力展示
-✅ **本地开发测试**：在开发者模式下测试
-✅ **教育目的**：学习 Vision API 集成
-❌ **生产环境**：不要在实际求职中使用
-❌ **他人页面**：不要截取他人的 LinkedIn 页面
-❌ **商业用途**：不要用于任何商业目的
-
-#### 法律声明
-
-使用截图功能即表示您：
-- 已阅读并理解上述风险
-- 同意自行承担所有使用风险
-- 确认仅用于演示和教育目的
-- 理解此功能不适合生产环境
+When using any AI feature for the first time, a privacy consent window will appear. Please read carefully and click "I Agree".
 
 ---
 
-## 🔐 隐私与安全
+## ⚠️ Disclaimer
 
-### 数据处理流程
+### Screenshot Function (LinkedIn Snapshot)
 
-1. **PDF 文件**: 100% 在本地浏览器中处理，不上传任何服务器
-2. **文本内容**: 仅发送到 Google Gemini API 进行分析
-3. **截图数据**: 仅发送至 Gemini Vision API（需额外同意）
-4. **API 密钥**: 通过 Firebase AI Logic 安全代理，不暴露在前端
-5. **存储**: 仅存储用户同意状态（chrome.storage.local）
+**This feature is for educational and technical demonstration purposes only.**
 
-### Chrome 商店合规
+#### Risk Warning
 
-- ✅ Manifest V3 规范
-- ✅ Prominent Disclosure（显著披露）
-- ✅ 最小权限原则
-- ✅ 隐私政策链接
-- ✅ 用户同意机制
-- ✅ 数据透明度
-- ⚠️ 截图功能需额外声明
+1. **Terms of Service Risk**
+   - Using screenshot feature may violate LinkedIn's Terms of Service
+   - LinkedIn prohibits using automated tools to access or scrape their service
+   - Although screenshots are user-initiated, there's still a gray area
+
+2. **Account Security**
+   - We are not responsible for account issues caused by using this feature
+   - LinkedIn has the right to suspend or terminate accounts violating their terms
+   - Recommend only using in test environments or personal pages
+
+3. **Data Privacy**
+   - Screenshots will include all visible information on the page
+   - Data will be sent to selected AI Vision API via secure proxy
+   - While not stored, it will be processed during transmission
+
+#### Recommended Usage
+
+✅ **Hackathon Demo Review**: As a technical capability showcase
+✅ **Local Development Testing**: Testing in developer mode
+✅ **Educational Purposes**: Learning Vision API integration
+❌ **Production Environment**: Do not use in actual job hunting
+❌ **Others' Pages**: Do not capture others' LinkedIn pages
+❌ **Commercial Use**: Do not use for any commercial purposes
+
+#### Legal Statement
+
+By using the screenshot feature, you:
+- Have read and understand the above risks
+- Agree to bear all usage risks
+- Confirm use only for demonstration and educational purposes
+- Understand this feature is not suitable for production environment
 
 ---
 
-## 🧪 开发指南
+## 🔐 Privacy & Security
 
-### 可用脚本
+### Data Processing Flow
+
+1. **PDF Files**: 100% processed in local browser, never uploaded to any server
+2. **Text Content**: Only sent to selected AI API for analysis
+3. **Screenshot Data**: Only sent to AI Vision API (requires additional consent)
+4. **API Keys**: Securely proxied through configured service, not exposed in frontend
+5. **Storage**: Only stores user consent status (chrome.storage.local)
+
+### Chrome Store Compliance
+
+- ✅ Manifest V3 specification
+- ✅ Prominent Disclosure
+- ✅ Principle of least privilege
+- ✅ Privacy policy link
+- ✅ User consent mechanism
+- ✅ Data transparency
+- ⚠️ Screenshot feature requires additional declaration
+
+---
+
+## 🧪 Development Guide
+
+### Available Scripts
 
 ```bash
-# 开发模式（热更新）
+# Development mode (hot reload)
 npm run dev
 
-# 生产构建
+# Production build
 npm run build
 
-# 代码检查
+# Code linting
 npm run lint
 
-# 预览构建
+# Preview build
 npm run preview
 ```
 
-### 代码规范
+### Code Standards
 
-- **TypeScript**: 严格模式，完整类型定义
-- **ESLint**: 代码质量检查
-- **Prettier**: 代码格式化（推荐）
-- **组件化**: 单一职责原则
+- **TypeScript**: Strict mode, complete type definitions
+- **ESLint**: Code quality checking
+- **Prettier**: Code formatting (recommended)
+- **Component-based**: Single responsibility principle
 
-### 目录说明
+### Directory Description
 
-- `src/components/` - 可复用 UI 组件
-- `src/utils/` - 工具函数
-- `.claude/` - 开发文档和指南
-- `public/` - 静态资源
+- `src/components/` - Reusable UI components
+- `src/utils/` - Utility functions
+- `.claude/` - Development documentation and guides
+- `public/` - Static assets
 
 ---
 
-## 🐛 问题排查
+## 🐛 Troubleshooting
 
-### PDF 解析失败
+### PDF Parsing Failed
 
-**问题**: "Failed to fetch worker"
+**Issue**: "Failed to fetch worker"
 
-**解决**:
-1. 确保 `public/pdf.worker.min.mjs` 文件存在
-2. 检查 `manifest.json` 中的 `web_accessible_resources`
-3. 重新构建并重新加载扩展
+**Solution**:
+1. Ensure `public/pdf.worker.min.mjs` file exists
+2. Check `web_accessible_resources` in `manifest.json`
+3. Rebuild and reload extension
 
-### AI 调用失败
+### AI Call Failed
 
-**问题**: "API 配额已用完"
+**Issue**: "API quota exhausted"
 
-**解决**:
-1. 检查 Firebase 控制台的 API 配额
-2. 等待配额重置（通常几分钟）
-3. 升级 Firebase 计划（如需要）
+**Solution**:
+1. Check API quota in your provider's console
+2. Wait for quota reset (usually a few minutes)
+3. Upgrade plan if needed
 
-### 隐私弹窗不显示
+### Privacy Dialog Not Showing
 
-**问题**: 已同意但想重新测试
+**Issue**: Already consented but want to retest
 
-**解决**:
+**Solution**:
 ```javascript
-// 在开发者工具控制台执行
+// Execute in developer tools console
 chrome.storage.local.remove(['privacyConsentGiven', 'consentTimestamp']);
 ```
 
 ---
 
-## 🤝 贡献指南
+## 🤝 Contributing
 
-欢迎贡献！请遵循以下步骤：
+Contributions are welcome! Please follow these steps:
 
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'feat: Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+1. Fork this repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-### 提交规范
+### Commit Convention
 
-使用 Conventional Commits：
-- `feat:` 新功能
-- `fix:` 修复 bug
-- `docs:` 文档更新
-- `style:` 代码格式
-- `refactor:` 重构
-- `test:` 测试
-- `chore:` 构建/工具
-
----
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+Use Conventional Commits:
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation update
+- `style:` Code formatting
+- `refactor:` Refactoring
+- `test:` Testing
+- `chore:` Build/tools
 
 ---
 
-## 🙏 致谢
+## 📄 License
 
-- [Google Gemini](https://ai.google.dev/) - AI 模型支持
-- [Firebase](https://firebase.google.com/) - 后端服务
-- [PDF.js](https://mozilla.github.io/pdf.js/) - PDF 解析
-- [React](https://reactjs.org/) - UI 框架
-- [Tailwind CSS](https://tailwindcss.com/) - 样式框架
-- [Vite](https://vitejs.dev/) - 构建工具
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📞 联系方式
+## 🙏 Acknowledgments
 
-- **项目地址**: [GitHub](https://github.com/yourusername/linkedin-copilot)
-- **问题反馈**: [Issues](https://github.com/yourusername/linkedin-copilot/issues)
-- **邮箱**: zkken0329@gmail.com
+- [Google Gemini](https://ai.google.dev/) - AI model support
+- [Firebase](https://firebase.google.com/) - Backend services
+- [PDF.js](https://mozilla.github.io/pdf.js/) - PDF parsing
+- [React](https://reactjs.org/) - UI framework
+- [Tailwind CSS](https://tailwindcss.com/) - Styling framework
+- [Vite](https://vitejs.dev/) - Build tool
+
+---
+
+## 📞 Contact
+
+- **Project URL**: [GitHub](https://github.com/zkkken/linkedin-copilot)
+- **Issue Tracker**: [Issues](https://github.com/zkkken/linkedin-copilot/issues)
+- **Email**: zkken0329@gmail.com
 
 <p align="center">
   Made with ❤️ for Google Hackathon
 </p>
 
 <p align="center">
-  <strong>LinkedIn Safe Co-Pilot</strong> - 让你的简历脱颖而出 ✨
+  <strong>LinkedIn Safe Co-Pilot</strong> - Make Your Resume Stand Out ✨
 </p>
