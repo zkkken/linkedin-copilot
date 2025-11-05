@@ -53,17 +53,25 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onClose }) => {
     setTestResult(null);
 
     try {
+      console.log('Testing connection with config:', config);
+      console.log('Provider:', provider.name);
+
       const testPrompt = 'Test: Please respond with "Hello! Connection successful." and nothing else.';
       const result = await provider.generateContent(testPrompt, config);
 
+      console.log('Test connection successful:', result);
       setTestResult({
         success: true,
         message: `✅ Connection successful!\n\nResponse: ${result.substring(0, 200)}${result.length > 200 ? '...' : ''}`
       });
     } catch (error) {
+      console.error('Test connection failed:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : '';
+
       setTestResult({
         success: false,
-        message: `❌ Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `❌ Connection failed:\n\n${errorMessage}\n\n${errorStack ? 'Stack trace:\n' + errorStack.substring(0, 300) : ''}`
       });
     } finally {
       setIsTesting(false);

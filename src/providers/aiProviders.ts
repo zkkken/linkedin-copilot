@@ -17,11 +17,24 @@ function parseFirebaseConfig(configStr: string): any {
     cleanStr = cleanStr.replace(/;+$/, '');
     cleanStr = cleanStr.trim();
 
-    // Parse the JSON object
-    const config = JSON.parse(cleanStr);
-    return config;
+    // Try JSON.parse first (in case it's already valid JSON)
+    try {
+      return JSON.parse(cleanStr);
+    } catch (jsonError) {
+      // If JSON.parse fails, it's likely a JavaScript object literal
+      // Use Function constructor to safely evaluate it
+      const config = new Function('return ' + cleanStr)();
+
+      // Validate that it's an object and has required Firebase fields
+      if (typeof config !== 'object' || !config.apiKey || !config.projectId) {
+        throw new Error('Missing required Firebase fields (apiKey, projectId)');
+      }
+
+      return config;
+    }
   } catch (error) {
-    throw new Error('Invalid Firebase config format. Please paste the entire firebaseConfig object.');
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Invalid Firebase config format: ${errorMsg}\n\nPlease paste the entire firebaseConfig object from your Firebase console.`);
   }
 }
 
@@ -50,7 +63,7 @@ const userFirebaseProvider: AIProvider = {
   measurementId: "G-XXXXXXXXXX"
 };`,
       required: true,
-      helpText: 'Paste your entire firebaseConfig object from Firebase Console → Project Settings → General → Your apps'
+      helpText: 'Paste your entire firebaseConfig object from Firebase Console → Project Settings → General → Your apps. IMPORTANT: Enable Vertex AI API in your Firebase project first!'
     },
     {
       key: 'location',
@@ -63,41 +76,61 @@ const userFirebaseProvider: AIProvider = {
   ],
 
   generateContent: async (prompt: string, config: any) => {
-    const { initializeApp, getApps } = await import('firebase/app');
-    const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
+    try {
+      console.log('[Firebase Provider] Starting generateContent');
+      console.log('[Firebase Provider] Raw config:', config);
 
-    // Parse Firebase config from the raw string
-    const firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
+      const { initializeApp, getApps } = await import('firebase/app');
+      const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
 
-    // Check if app already exists
-    let app;
-    const existingApps = getApps();
-    const userAppName = 'user-firebase-app';
-    const existingApp = existingApps.find(a => a.name === userAppName);
-
-    if (existingApp) {
-      app = existingApp;
-    } else {
-      app = initializeApp({
-        apiKey: firebaseConfig.apiKey,
-        authDomain: firebaseConfig.authDomain,
+      // Parse Firebase config from the raw string
+      console.log('[Firebase Provider] Parsing config string...');
+      const firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
+      console.log('[Firebase Provider] Parsed Firebase config:', {
         projectId: firebaseConfig.projectId,
-        storageBucket: firebaseConfig.storageBucket,
-        messagingSenderId: firebaseConfig.messagingSenderId,
-        appId: firebaseConfig.appId
-      }, userAppName);
+        hasApiKey: !!firebaseConfig.apiKey
+      });
+
+      // Check if app already exists
+      let app;
+      const existingApps = getApps();
+      const userAppName = 'user-firebase-app';
+      const existingApp = existingApps.find(a => a.name === userAppName);
+
+      if (existingApp) {
+        console.log('[Firebase Provider] Using existing Firebase app');
+        app = existingApp;
+      } else {
+        console.log('[Firebase Provider] Initializing new Firebase app');
+        app = initializeApp({
+          apiKey: firebaseConfig.apiKey,
+          authDomain: firebaseConfig.authDomain,
+          projectId: firebaseConfig.projectId,
+          storageBucket: firebaseConfig.storageBucket,
+          messagingSenderId: firebaseConfig.messagingSenderId,
+          appId: firebaseConfig.appId
+        }, userAppName);
+      }
+
+      const location = config.location || 'us-central1';
+      console.log('[Firebase Provider] Using Vertex AI location:', location);
+
+      const ai = getAI(app, {
+        backend: new VertexAIBackend(location)
+      });
+
+      const model = getGenerativeModel(ai, {
+        model: 'gemini-2.5-flash'
+      });
+
+      console.log('[Firebase Provider] Sending request to AI...');
+      const result = await model.generateContent(prompt);
+      console.log('[Firebase Provider] Received response');
+      return result.response.text();
+    } catch (error) {
+      console.error('[Firebase Provider] Error:', error);
+      throw error;
     }
-
-    const ai = getAI(app, {
-      backend: new VertexAIBackend(config.location || 'us-central1')
-    });
-
-    const model = getGenerativeModel(ai, {
-      model: 'gemini-2.5-flash'
-    });
-
-    const result = await model.generateContent(prompt);
-    return result.response.text();
   },
 
   analyzeImage: async (imageDataUrl: string, prompt: string, config: any) => {
