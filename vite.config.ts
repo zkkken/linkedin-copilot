@@ -13,9 +13,13 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
-    strictPort: true, // Set to true to exit if port is already in use
+    strictPort: true,
     hmr: {
       port: 5173,
+    },
+    cors: {
+      origin: '*',
+      credentials: true
     }
   }
 })

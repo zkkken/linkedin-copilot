@@ -346,21 +346,19 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     });
     setSectionEntryIndex(defaultIndexes);
 
-    // Keep current section selection (don't auto-switch)
+    // 🆕 Keep current section selection (don't auto-switch after upload)
     // Only update content if current section exists in extracted data
     if (entries[currentSection]) {
       const initialContent = entries[currentSection]![0];
       setResumeContent(initialContent);
     } else {
-      // If current section not found, switch to first detected section
-      const detectedType = detectSectionType(cleanedText);
-      setCurrentSection(detectedType);
-      const initialContent = entries[detectedType]?.[0] ?? cleanedText;
-      setResumeContent(initialContent);
+      // Current section not found in PDF - keep selection but clear content
+      // User can manually switch to another section
+      setResumeContent('');
     }
 
     setIsPdfSource(true);
-    setOptimizedText('PDF parsed successfully. Select the section to optimize, then click "Optimize".');
+    setOptimizedText('PDF parsed successfully. Select the section you want to optimize.');
   };
 
   // Handle section change
@@ -683,6 +681,50 @@ Tasks:
           return lines.join('\n');
         };
 
+        // Split content into multiple entries (like PDF mode)
+        // Splits by 2+ consecutive empty lines OR by detecting new entries (company/school names)
+        const splitIntoMultipleEntries = (content: string, sectionType: SectionType): string[] => {
+          if (!content) return [];
+
+          // Don't split these single-content sections
+          if (sectionType === 'general' || sectionType === 'headline' || sectionType === 'about' || sectionType === 'skills') {
+            return [content];
+          }
+
+          const entries: string[] = [];
+          let currentEntry: string[] = [];
+          let emptyLineCount = 0;
+
+          const lines = content.split(/\r?\n/);
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+
+            // If we encounter 2+ empty lines, push current entry and start new one
+            if (!trimmed) {
+              emptyLineCount++;
+              if (emptyLineCount >= 2 && currentEntry.length > 0) {
+                entries.push(currentEntry.join('\n').trim());
+                currentEntry = [];
+                emptyLineCount = 0;
+              } else if (currentEntry.length > 0 && currentEntry[currentEntry.length - 1] !== '') {
+                currentEntry.push('');
+              }
+              continue;
+            }
+
+            emptyLineCount = 0;
+            currentEntry.push(line);
+          }
+
+          // Push final entry
+          if (currentEntry.length > 0) {
+            entries.push(currentEntry.join('\n').trim());
+          }
+
+          return entries.filter(e => e.length > 0);
+        };
+
         for (const [rawKey, rawValue] of Object.entries(extractedData)) {
           const normalizedKey = normalizeVisionKey(rawKey);
           const sectionType = fieldMapping[normalizedKey];
@@ -696,8 +738,12 @@ Tasks:
             content = cleanSkillsText(content);
           }
           if (content) {
-            entries[sectionType] = [content];
-            hasAnyContent = true;
+            // Split into multiple entries (e.g., multiple jobs, schools)
+            const splitEntries = splitIntoMultipleEntries(content, sectionType);
+            if (splitEntries.length > 0) {
+              entries[sectionType] = splitEntries;
+              hasAnyContent = true;
+            }
           }
         }
 
@@ -732,7 +778,13 @@ Tasks:
           }
         }
 
-        setOptimizedText('✅ Screenshot content analyzed! Select the section you want to optimize, then click "Optimize".');
+        // Automatically trigger optimization after state updates
+        setOptimizedText('✅ Screenshot content analyzed! Now optimizing...');
+
+        // Use setTimeout to ensure state updates are applied before optimization runs
+        setTimeout(() => {
+          handleOptimize();
+        }, 100);
 
       } catch (parseError) {
         console.error('Failed to parse Vision API response:', parseError);

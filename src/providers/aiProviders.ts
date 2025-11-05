@@ -6,173 +6,222 @@
 import type { AIProvider } from './types';
 
 /**
- * Default Provider: Uses the extension's Firebase configuration
- * Limited to 10 optimizations per day (free tier)
+ * Parse Firebase configuration from various formats
+ * Supports: pure JSON, JavaScript const/let/var declarations
+ * Uses manual parsing to avoid CSP issues with eval/Function
  */
-const defaultProvider: AIProvider = {
-  id: 'default',
-  name: 'Default (Free Tier - 10/day)',
-  description: 'Use our shared Firebase + Gemini 2.5 Flash. Limited to 10 optimizations per day.',
-  requiresConfig: false,
-  configFields: [],
-  supportsVision: true,
-
-  generateContent: async (prompt: string) => {
-    const { model } = await import('../firebase');
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  },
-
-  analyzeImage: async (imageDataUrl: string, prompt: string) => {
-    const { analyzeScreenshot } = await import('../firebase');
-    return await analyzeScreenshot(imageDataUrl, prompt);
+function parseFirebaseConfig(input: string | object): object {
+  // If already an object, return it
+  if (typeof input !== 'string') {
+    return input;
   }
-};
+
+  let configStr = input.trim();
+
+  // Remove JavaScript variable declarations
+  configStr = configStr.replace(/^(const|let|var)\s+\w+\s*=\s*/, '');
+
+  // Remove trailing semicolon
+  configStr = configStr.replace(/;?\s*$/, '');
+
+  // Try to parse as JSON first
+  try {
+    const result = JSON.parse(configStr);
+    return result;
+  } catch (jsonError) {
+    // JSON parsing failed, try manual parsing for JavaScript object literal
+  }
+
+  // Manual parsing for JavaScript object literal (without quotes around keys)
+  try {
+    const result: any = {};
+
+    // Extract content between the first { and last }
+    const firstBrace = configStr.indexOf('{');
+    const lastBrace = configStr.lastIndexOf('}');
+
+    if (firstBrace === -1 || lastBrace === -1) {
+      throw new Error('Could not find object literal {}');
+    }
+
+    const content = configStr.substring(firstBrace + 1, lastBrace);
+
+    // Match all key: value pairs (handles both quoted and unquoted values)
+    const keyValueRegex = /(\w+)\s*:\s*["']([^"']+)["']/g;
+    let match;
+
+    while ((match = keyValueRegex.exec(content)) !== null) {
+      const key = match[1];
+      const value = match[2];
+      result[key] = value;
+    }
+
+    // Validate required fields
+    if (!result.apiKey) {
+      throw new Error('Missing required field: apiKey');
+    }
+
+    console.log('Manual parsing successful:', result);
+    return result;
+  } catch (parseError: any) {
+    console.error('Manual parse error:', parseError);
+    throw new Error(`Failed to parse Firebase config: ${parseError.message}. Please paste the complete const firebaseConfig = {...}; block.`);
+  }
+}
 
 /**
- * User Firebase Provider: User provides their own Firebase configuration
- * Unlimited usage (user pays for their own Firebase/Vertex AI costs)
+ * Firebase AI Logic Provider: User provides their Firebase configuration
+ * Unlimited usage (user pays for their own Firebase/Gemini costs)
  */
-const userFirebaseProvider: AIProvider = {
-  id: 'userFirebase',
-  name: 'Your Own Firebase (Unlimited)',
-  description: 'Connect your own Firebase project with Vertex AI. No daily limits - you control the costs.',
+const firebaseProvider: AIProvider = {
+  id: 'firebase',
+  name: 'Firebase AI Logic',
+  description: 'Use your own Firebase configuration. Paste the entire firebaseConfig object from Firebase Console.',
   requiresConfig: true,
   supportsVision: true,
   configFields: [
     {
-      key: 'apiKey',
-      label: 'Firebase API Key',
-      type: 'password',
-      placeholder: 'AIza...',
+      key: 'firebaseConfig',
+      label: 'Firebase Configuration',
+      type: 'textarea',
+      rows: 10,
+      placeholder: `Paste either format:
+
+Option 1 - Pure JSON:
+{"apiKey":"AIza...","authDomain":"your-project.firebaseapp.com"...}
+
+Option 2 - JavaScript code:
+const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123"
+};`,
       required: true,
-      helpText: 'Get from Firebase Console → Project Settings → General'
+      helpText: 'Get from Firebase Console → Project Settings → General → Your apps → SDK setup and configuration'
     },
     {
-      key: 'authDomain',
-      label: 'Auth Domain',
-      type: 'text',
-      placeholder: 'your-project.firebaseapp.com',
-      required: true
-    },
-    {
-      key: 'projectId',
-      label: 'Project ID',
-      type: 'text',
-      placeholder: 'your-project-id',
-      required: true,
-      helpText: 'Your Firebase project identifier'
-    },
-    {
-      key: 'storageBucket',
-      label: 'Storage Bucket',
-      type: 'text',
-      placeholder: 'your-project.appspot.com',
-      required: true
-    },
-    {
-      key: 'messagingSenderId',
-      label: 'Messaging Sender ID',
-      type: 'text',
-      placeholder: '1234567890',
-      required: true
-    },
-    {
-      key: 'appId',
-      label: 'App ID',
-      type: 'text',
-      placeholder: '1:1234567890:web:abc123',
-      required: true
-    },
-    {
-      key: 'location',
-      label: 'Vertex AI Location',
+      key: 'model',
+      label: 'Model',
       type: 'select',
-      options: ['us-central1', 'europe-west1', 'asia-southeast1'],
+      options: ['gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
       required: true,
-      helpText: 'Region where your Vertex AI is enabled'
+      helpText: 'Choose which Gemini model to use'
     }
   ],
 
   generateContent: async (prompt: string, config: any) => {
-    const { initializeApp, getApps } = await import('firebase/app');
-    const { getVertexAI, getGenerativeModel } = await import('firebase/vertexai');
+    try {
+      // Debug: Log the raw config
+      console.log('Raw firebaseConfig:', config.firebaseConfig);
+      console.log('Config type:', typeof config.firebaseConfig);
 
-    // Check if app already exists
-    let app;
-    const existingApps = getApps();
-    const userAppName = 'user-firebase-app';
-    const existingApp = existingApps.find(a => a.name === userAppName);
+      // Parse Firebase config
+      const fbConfig = parseFirebaseConfig(config.firebaseConfig);
+      console.log('Parsed config:', fbConfig);
 
-    if (existingApp) {
-      app = existingApp;
-    } else {
-      app = initializeApp({
-        apiKey: config.apiKey,
-        authDomain: config.authDomain,
-        projectId: config.projectId,
-        storageBucket: config.storageBucket,
-        messagingSenderId: config.messagingSenderId,
-        appId: config.appId
-      }, userAppName);
+      const { initializeApp, getApps } = await import('firebase/app');
+      const { getAI, getGenerativeModel, GoogleAIBackend } = await import('firebase/ai');
+
+      // Check if app already exists
+      let app;
+      const existingApps = getApps();
+      const userAppName = 'user-firebase-app';
+      const existingApp = existingApps.find(a => a.name === userAppName);
+
+      if (existingApp) {
+        app = existingApp;
+      } else {
+        app = initializeApp(fbConfig, userAppName);
+      }
+
+      const ai = getAI(app, {
+        backend: new GoogleAIBackend(),
+        useLimitedUseAppCheckTokens: true
+      });
+
+      const model = getGenerativeModel(ai, {
+        model: config.model || 'gemini-2.5-flash'
+      });
+
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (error: any) {
+      // Re-throw parsing errors as-is (they have user-friendly messages)
+      if (error.message?.includes('Invalid Firebase configuration format')) {
+        throw error;
+      }
+
+      // Handle Firebase initialization errors
+      if (error.message?.includes('API key')) {
+        throw new Error('Invalid API key in Firebase configuration. Please check your apiKey field.');
+      }
+
+      // Handle other errors with more context
+      const errorMessage = error.message || 'Unknown error';
+      throw new Error(`Firebase AI connection failed: ${errorMessage}`);
     }
-
-    const vertexAI = getVertexAI(app, {
-      location: config.location || 'us-central1'
-    });
-
-    const model = getGenerativeModel(vertexAI, {
-      model: 'gemini-2.0-flash-exp'
-    });
-
-    const result = await model.generateContent(prompt);
-    return result.response.text();
   },
 
   analyzeImage: async (imageDataUrl: string, prompt: string, config: any) => {
-    const { initializeApp, getApps } = await import('firebase/app');
-    const { getVertexAI, getGenerativeModel } = await import('firebase/vertexai');
+    try {
+      // Parse Firebase config
+      const fbConfig = parseFirebaseConfig(config.firebaseConfig);
 
-    // Initialize or get existing app
-    let app;
-    const existingApps = getApps();
-    const userAppName = 'user-firebase-app';
-    const existingApp = existingApps.find(a => a.name === userAppName);
+      const { initializeApp, getApps } = await import('firebase/app');
+      const { getAI, getGenerativeModel, GoogleAIBackend } = await import('firebase/ai');
 
-    if (existingApp) {
-      app = existingApp;
-    } else {
-      app = initializeApp({
-        apiKey: config.apiKey,
-        authDomain: config.authDomain,
-        projectId: config.projectId,
-        storageBucket: config.storageBucket,
-        messagingSenderId: config.messagingSenderId,
-        appId: config.appId
-      }, userAppName);
+      // Check if app already exists
+      let app;
+      const existingApps = getApps();
+      const userAppName = 'user-firebase-app';
+      const existingApp = existingApps.find(a => a.name === userAppName);
+
+      if (existingApp) {
+        app = existingApp;
+      } else {
+        app = initializeApp(fbConfig, userAppName);
+      }
+
+      const ai = getAI(app, {
+        backend: new GoogleAIBackend(),
+        useLimitedUseAppCheckTokens: true
+      });
+
+      const model = getGenerativeModel(ai, {
+        model: config.model || 'gemini-2.5-flash'
+      });
+
+      const base64Data = imageDataUrl.split(',')[1];
+
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            mimeType: "image/png",
+            data: base64Data
+          }
+        },
+        { text: prompt }
+      ]);
+
+      return result.response.text();
+    } catch (error: any) {
+      // Re-throw parsing errors as-is (they have user-friendly messages)
+      if (error.message?.includes('Invalid Firebase configuration format')) {
+        throw error;
+      }
+
+      // Handle Firebase initialization errors
+      if (error.message?.includes('API key')) {
+        throw new Error('Invalid API key in Firebase configuration. Please check your apiKey field.');
+      }
+
+      // Handle other errors with more context
+      const errorMessage = error.message || 'Unknown error';
+      throw new Error(`Firebase AI connection failed: ${errorMessage}`);
     }
-
-    const vertexAI = getVertexAI(app, {
-      location: config.location || 'us-central1'
-    });
-
-    const model = getGenerativeModel(vertexAI, {
-      model: 'gemini-2.0-flash-exp'
-    });
-
-    const base64Data = imageDataUrl.split(',')[1];
-
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: "image/png",
-          data: base64Data
-        }
-      },
-      { text: prompt }
-    ]);
-
-    return result.response.text();
   }
 };
 
@@ -386,8 +435,7 @@ const claudeProvider: AIProvider = {
  * All available AI providers
  */
 export const AI_PROVIDERS: Record<string, AIProvider> = {
-  default: defaultProvider,
-  userFirebase: userFirebaseProvider,
+  firebase: firebaseProvider,
   openai: openaiProvider,
   claude: claudeProvider
 };
@@ -396,7 +444,7 @@ export const AI_PROVIDERS: Record<string, AIProvider> = {
  * Get provider by ID
  */
 export function getProvider(providerId: string): AIProvider {
-  return AI_PROVIDERS[providerId] || AI_PROVIDERS.default;
+  return AI_PROVIDERS[providerId] || AI_PROVIDERS.firebase;
 }
 
 /**

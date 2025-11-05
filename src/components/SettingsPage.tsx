@@ -6,27 +6,23 @@
 import { useState, useEffect } from 'react';
 import { AI_PROVIDERS, getProvider } from '../providers/aiProviders';
 import type { AIProvider, AIProviderConfig } from '../providers/types';
-import { getQuotaStatus, formatResetTime } from '../utils/quotaManager';
-import type { QuotaStatus } from '../providers/types';
 
 interface SettingsPageProps {
   onClose: () => void;
 }
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ onClose }) => {
-  const [selectedProvider, setSelectedProvider] = useState('default');
+  const [selectedProvider, setSelectedProvider] = useState('firebase');
   const [config, setConfig] = useState<AIProviderConfig>({});
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [quota, setQuota] = useState<QuotaStatus | null>(null);
 
   const provider = getProvider(selectedProvider);
 
   // Load saved settings
   useEffect(() => {
     loadSettings();
-    loadQuotaStatus();
   }, []);
 
   const loadSettings = async () => {
@@ -37,11 +33,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onClose }) => {
     if (result.aiProviderConfig) {
       setConfig(result.aiProviderConfig);
     }
-  };
-
-  const loadQuotaStatus = async () => {
-    const status = await getQuotaStatus();
-    setQuota(status);
   };
 
   const handleProviderChange = (newProvider: string) => {
@@ -88,9 +79,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onClose }) => {
         aiProviderConfig: config
       });
 
-      // Reload quota status
-      await loadQuotaStatus();
-
       alert('✅ Settings saved successfully!');
       onClose();
     } catch (error) {
@@ -119,30 +107,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onClose }) => {
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Current Quota Status */}
-          {quota && !quota.isUnlimited && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-bold text-blue-900 mb-2">📊 Current Usage (Free Tier)</h3>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-blue-800">Today's usage:</span>
-                  <span className="font-bold text-blue-900">
-                    {quota.used} / {quota.dailyLimit} optimizations
-                  </span>
-                </div>
-                <div className="w-full bg-blue-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${(quota.used / quota.dailyLimit) * 100}%` }}
-                  />
-                </div>
-                <p className="text-xs text-blue-700">
-                  Resets {formatResetTime(quota.resetTime)} • Upgrade to a custom provider for unlimited usage
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Provider Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -191,6 +155,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onClose }) => {
                         </option>
                       ))}
                     </select>
+                  ) : field.type === 'textarea' ? (
+                    <textarea
+                      placeholder={field.placeholder}
+                      value={config[field.key] || ''}
+                      onChange={(e) => handleConfigChange(field.key, e.target.value)}
+                      rows={field.rows || 6}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A66C2] focus:border-[#0A66C2] font-mono text-sm"
+                      required={field.required}
+                    />
                   ) : (
                     <input
                       type={field.type}
