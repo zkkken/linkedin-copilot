@@ -88,7 +88,7 @@ const userFirebaseProvider: AIProvider = {
   measurementId: "G-XXXXXXXXXX"
 };`,
       required: true,
-      helpText: 'Paste your entire firebaseConfig object from Firebase Console → Project Settings → General → Your apps. IMPORTANT: Enable Vertex AI API in your Firebase project first!'
+      helpText: 'Paste your firebaseConfig from Firebase Console → Project Settings. ⚠️ MUST enable Vertex AI first: Console → Build → Vertex AI in Firebase → Get started'
     },
     {
       key: 'location',
@@ -101,6 +101,7 @@ const userFirebaseProvider: AIProvider = {
   ],
 
   generateContent: async (prompt: string, config: any) => {
+    let firebaseConfig: any;
     try {
       console.log('[Firebase Provider] Starting generateContent');
       console.log('[Firebase Provider] Raw config:', config);
@@ -110,7 +111,7 @@ const userFirebaseProvider: AIProvider = {
 
       // Parse Firebase config from the raw string
       console.log('[Firebase Provider] Parsing config string...');
-      const firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
+      firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
       console.log('[Firebase Provider] Parsed Firebase config:', {
         projectId: firebaseConfig.projectId,
         hasApiKey: !!firebaseConfig.apiKey
@@ -154,57 +155,94 @@ const userFirebaseProvider: AIProvider = {
       return result.response.text();
     } catch (error) {
       console.error('[Firebase Provider] Error:', error);
+
+      // Improve error message for common issues
+      if (error instanceof Error) {
+        if (error.message.includes('api-not-enabled') || error.message.includes('firebasevertexai.googleapis.com')) {
+          const projectId = firebaseConfig.projectId;
+          throw new Error(
+            `❌ Vertex AI API not enabled!\n\n` +
+            `Please follow these steps:\n` +
+            `1. Visit: https://console.firebase.google.com/project/${projectId}/genai/\n` +
+            `2. Click "Get started" or "Enable"\n` +
+            `3. Wait 2-3 minutes for the API to activate\n` +
+            `4. Try the test connection again\n\n` +
+            `Note: If you just enabled it, please wait a few minutes before retrying.`
+          );
+        }
+      }
+
       throw error;
     }
   },
 
   analyzeImage: async (imageDataUrl: string, prompt: string, config: any) => {
-    const { initializeApp, getApps } = await import('firebase/app');
-    const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
+    let firebaseConfig: any;
+    try {
+      const { initializeApp, getApps } = await import('firebase/app');
+      const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
 
-    // Parse Firebase config from the raw string
-    const firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
+      // Parse Firebase config from the raw string
+      firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
 
-    // Initialize or get existing app
-    let app;
-    const existingApps = getApps();
-    const userAppName = 'user-firebase-app';
-    const existingApp = existingApps.find(a => a.name === userAppName);
+      // Initialize or get existing app
+      let app;
+      const existingApps = getApps();
+      const userAppName = 'user-firebase-app';
+      const existingApp = existingApps.find(a => a.name === userAppName);
 
-    if (existingApp) {
-      app = existingApp;
-    } else {
-      app = initializeApp({
-        apiKey: firebaseConfig.apiKey,
-        authDomain: firebaseConfig.authDomain,
-        projectId: firebaseConfig.projectId,
-        storageBucket: firebaseConfig.storageBucket,
-        messagingSenderId: firebaseConfig.messagingSenderId,
-        appId: firebaseConfig.appId
-      }, userAppName);
-    }
+      if (existingApp) {
+        app = existingApp;
+      } else {
+        app = initializeApp({
+          apiKey: firebaseConfig.apiKey,
+          authDomain: firebaseConfig.authDomain,
+          projectId: firebaseConfig.projectId,
+          storageBucket: firebaseConfig.storageBucket,
+          messagingSenderId: firebaseConfig.messagingSenderId,
+          appId: firebaseConfig.appId
+        }, userAppName);
+      }
 
-    const ai = getAI(app, {
-      backend: new VertexAIBackend(config.location || 'us-central1')
-    });
+      const ai = getAI(app, {
+        backend: new VertexAIBackend(config.location || 'us-central1')
+      });
 
-    const model = getGenerativeModel(ai, {
-      model: 'gemini-2.5-flash'
-    });
+      const model = getGenerativeModel(ai, {
+        model: 'gemini-2.5-flash'
+      });
 
-    const base64Data = imageDataUrl.split(',')[1];
+      const base64Data = imageDataUrl.split(',')[1];
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: "image/png",
-          data: base64Data
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            mimeType: "image/png",
+            data: base64Data
+          }
+        },
+        { text: prompt }
+      ]);
+
+      return result.response.text();
+    } catch (error) {
+      console.error('[Firebase Provider] Vision API Error:', error);
+
+      // Improve error message for common issues
+      if (error instanceof Error) {
+        if (error.message.includes('api-not-enabled') || error.message.includes('firebasevertexai.googleapis.com')) {
+          const projectId = firebaseConfig?.projectId || 'your-project';
+          throw new Error(
+            `❌ Vertex AI API not enabled!\n\n` +
+            `Please enable it at:\n` +
+            `https://console.firebase.google.com/project/${projectId}/genai/\n\n` +
+            `Then wait 2-3 minutes before retrying.`
+          );
         }
-      },
-      { text: prompt }
-    ]);
+      }
 
-    return result.response.text();
+      throw error;
+    }
   }
 };
 
