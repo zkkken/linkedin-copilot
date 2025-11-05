@@ -472,20 +472,25 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
 
       if (useStructuredOutput) {
         // Parse structured JSON response
+        console.log('[Optimize] Parsing structured response...');
         const parsedData = parseStructuredResponse(text, currentSection);
-        console.log('Parsed data:', parsedData);
+        console.log('[Optimize] Parsed data:', parsedData);
+        console.log('[Optimize] Number of suggestions:', parsedData?.suggestions?.length || 0);
 
         setStructuredResult(parsedData);
         setOptimizedText(''); // Clear previous plain-text output
+        console.log('[Optimize] Set structured result, cleared optimized text');
 
         // 🆕 Cache the result (issue #5)
         setOptimizedCache((prev) => ({
           ...prev,
           [currentSection]: parsedData
         }));
+        console.log('[Optimize] Cached result for section:', currentSection);
 
       } else {
         // Standard plain-text format
+        console.log('[Optimize] Using plain-text format');
         const formattedText = text
           .trim()
           .split('\n')
@@ -495,6 +500,7 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
 
         setOptimizedText(formattedText || text);
         setStructuredResult(null);
+        console.log('[Optimize] Set plain-text result, length:', (formattedText || text).length);
       }
 
     } catch (error) {
@@ -656,11 +662,31 @@ Tasks:
             .map((line) => line.trim())
             .filter(Boolean)
             .filter(
-              (line) =>
-                !/^skills$/i.test(line) &&
-                !/^all\s/i.test(line) &&
-                !/(industry knowledge|tools & technologies|interpersonal skills)/i.test(line)
+              (line) => {
+                // Remove common LinkedIn Skills section headers
+                const lowerLine = line.toLowerCase();
+                const isHeader =
+                  lowerLine === 'skills' ||
+                  lowerLine === 'all' ||
+                  lowerLine === 'show all' ||
+                  lowerLine.startsWith('all ') ||
+                  lowerLine.includes('industry knowledge') ||
+                  lowerLine.includes('tools & technologies') ||
+                  lowerLine.includes('tools and technologies') ||
+                  lowerLine.includes('interpersonal skills') ||
+                  lowerLine.includes('other skills') ||
+                  lowerLine.includes('technical skills') ||
+                  lowerLine.includes('soft skills') ||
+                  lowerLine.includes('passed linkedin skill assessment');
+
+                if (isHeader) {
+                  console.log(`[Skills Clean] Filtering out header: "${line}"`);
+                }
+                return !isHeader;
+              }
             );
+
+          console.log(`[Skills Clean] Original lines: ${text.split('\n').length}, After cleaning: ${lines.length}`);
           return lines.join('\n');
         };
 
@@ -1151,6 +1177,15 @@ Tasks:
 
       {/* Optimization output area - structured component */}
       <div className="mt-6">
+        {(() => {
+          // Debug: Log render state
+          if (structuredResult) {
+            console.log('[Render] Showing OptimizationResult, section:', currentSection, 'suggestions:', structuredResult?.suggestions?.length);
+          } else if (optimizedText) {
+            console.log('[Render] Showing optimizedText, length:', optimizedText.length);
+          }
+          return null;
+        })()}
         {isLoading ? (
           <div className="p-8 rounded-lg border-2 border-[#B3D6F2] bg-[#EAF3FF]">
             <LoadingSpinner />
