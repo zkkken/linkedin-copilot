@@ -65,12 +65,12 @@ function parseFirebaseConfig(configStr: string): any {
 
 /**
  * User Firebase Provider: User provides their own Firebase configuration
- * Unlimited usage (user pays for their own Firebase/Vertex AI costs)
+ * Unlimited usage (user pays for their own Firebase/Gemini AI costs)
  */
 const userFirebaseProvider: AIProvider = {
   id: 'userFirebase',
   name: 'Firebase with Gemini (Unlimited)',
-  description: 'Connect your own Firebase project with Gemini AI. No daily limits - you control the costs. Just paste your entire Firebase config.',
+  description: 'Connect your own Firebase project with Gemini Developer API. No daily limits - you control the costs. Just paste your entire Firebase config.',
   requiresConfig: true,
   supportsVision: true,
   configFields: [
@@ -88,15 +88,7 @@ const userFirebaseProvider: AIProvider = {
   measurementId: "G-XXXXXXXXXX"
 };`,
       required: true,
-      helpText: 'Paste your firebaseConfig from Firebase Console → Project Settings. ⚠️ MUST enable Vertex AI first: Console → Build → Vertex AI in Firebase → Get started'
-    },
-    {
-      key: 'location',
-      label: 'Vertex AI Location',
-      type: 'select',
-      options: ['us-central1', 'europe-west1', 'asia-southeast1'],
-      required: true,
-      helpText: 'Region where your Vertex AI is enabled'
+      helpText: 'Paste your firebaseConfig from Firebase Console → Project Settings. Then enable Gemini API: Console → Build → Gemini API in Firebase → Get started'
     }
   ],
 
@@ -107,7 +99,7 @@ const userFirebaseProvider: AIProvider = {
       console.log('[Firebase Provider] Raw config:', config);
 
       const { initializeApp, getApps } = await import('firebase/app');
-      const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
+      const { getAI, getGenerativeModel, GoogleAIBackend } = await import('firebase/ai');
 
       // Parse Firebase config from the raw string
       console.log('[Firebase Provider] Parsing config string...');
@@ -138,11 +130,11 @@ const userFirebaseProvider: AIProvider = {
         }, userAppName);
       }
 
-      const location = config.location || 'us-central1';
-      console.log('[Firebase Provider] Using Vertex AI location:', location);
+      console.log('[Firebase Provider] Using Gemini Developer API (Google AI)');
 
       const ai = getAI(app, {
-        backend: new VertexAIBackend(location)
+        backend: new GoogleAIBackend(),
+        useLimitedUseAppCheckTokens: true
       });
 
       const model = getGenerativeModel(ai, {
@@ -158,16 +150,16 @@ const userFirebaseProvider: AIProvider = {
 
       // Improve error message for common issues
       if (error instanceof Error) {
-        if (error.message.includes('api-not-enabled') || error.message.includes('firebasevertexai.googleapis.com')) {
+        if (error.message.includes('api-not-enabled') || error.message.includes('googleapis.com')) {
           const projectId = firebaseConfig.projectId;
           throw new Error(
-            `❌ Vertex AI API not enabled!\n\n` +
+            `❌ Gemini Developer API not enabled!\n\n` +
             `Please follow these steps:\n` +
-            `1. Visit: https://console.firebase.google.com/project/${projectId}/genai/\n` +
-            `2. Click "Get started" or "Enable"\n` +
+            `1. Visit Firebase Console: https://console.firebase.google.com/project/${projectId}/genai/\n` +
+            `2. Click "Get started" to enable Gemini API\n` +
             `3. Wait 2-3 minutes for the API to activate\n` +
             `4. Try the test connection again\n\n` +
-            `Note: If you just enabled it, please wait a few minutes before retrying.`
+            `Note: Make sure you're enabling "Gemini API in Firebase" (not Vertex AI).`
           );
         }
       }
@@ -180,7 +172,7 @@ const userFirebaseProvider: AIProvider = {
     let firebaseConfig: any;
     try {
       const { initializeApp, getApps } = await import('firebase/app');
-      const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
+      const { getAI, getGenerativeModel, GoogleAIBackend } = await import('firebase/ai');
 
       // Parse Firebase config from the raw string
       firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
@@ -205,7 +197,8 @@ const userFirebaseProvider: AIProvider = {
       }
 
       const ai = getAI(app, {
-        backend: new VertexAIBackend(config.location || 'us-central1')
+        backend: new GoogleAIBackend(),
+        useLimitedUseAppCheckTokens: true
       });
 
       const model = getGenerativeModel(ai, {
@@ -230,13 +223,14 @@ const userFirebaseProvider: AIProvider = {
 
       // Improve error message for common issues
       if (error instanceof Error) {
-        if (error.message.includes('api-not-enabled') || error.message.includes('firebasevertexai.googleapis.com')) {
+        if (error.message.includes('api-not-enabled') || error.message.includes('googleapis.com')) {
           const projectId = firebaseConfig?.projectId || 'your-project';
           throw new Error(
-            `❌ Vertex AI API not enabled!\n\n` +
+            `❌ Gemini Developer API not enabled!\n\n` +
             `Please enable it at:\n` +
             `https://console.firebase.google.com/project/${projectId}/genai/\n\n` +
-            `Then wait 2-3 minutes before retrying.`
+            `Click "Get started" and wait 2-3 minutes before retrying.\n\n` +
+            `Note: Enable "Gemini API in Firebase" (not Vertex AI).`
           );
         }
       }
