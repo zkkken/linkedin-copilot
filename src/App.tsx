@@ -16,7 +16,6 @@ import { getSectionConfig } from './utils/sectionConfigs';
 import { captureCurrentTab, isLinkedInPage } from './utils/screenshotCapture';
 import type { SectionType } from './types';
 import { getProvider } from './providers/aiProviders';
-import { canMakeRequest, incrementUsage, getQuotaStatus, formatResetTime } from './utils/quotaManager';
 
 type SectionEntriesMap = Partial<Record<SectionType, string[]>>;
 
@@ -427,25 +426,8 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     setStructuredResult(null);
 
     try {
-      // 🆕 Check quota before making request
-      const canProceed = await canMakeRequest();
-      if (!canProceed) {
-        const quotaStatus = await getQuotaStatus();
-        setOptimizedText(
-          `❌ Daily limit reached (${quotaStatus.dailyLimit} optimizations/day)\n\n` +
-          `Resets ${formatResetTime(quotaStatus.resetTime)}\n\n` +
-          `💡 To get unlimited usage:\n` +
-          `• Click the Settings ⚙️ button above\n` +
-          `• Choose a custom AI provider (Your Own Firebase, OpenAI, or Claude)\n` +
-          `• Enter your API key\n\n` +
-          `This way you control the costs and have no daily limits!`
-        );
-        setIsLoading(false);
-        return;
-      }
-
       // Get current provider configuration
-      const { aiProvider = 'default', aiProviderConfig = {} } =
+      const { aiProvider = 'userFirebase', aiProviderConfig = {} } =
         await chrome.storage.local.get(['aiProvider', 'aiProviderConfig']);
 
       const provider = getProvider(aiProvider);
@@ -465,9 +447,6 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
 
       // Call AI provider
       const text = await provider.generateContent(prompt, aiProviderConfig);
-
-      // Increment usage counter (only for default provider)
-      await incrementUsage();
 
       console.log('Raw AI response:', text);
 
@@ -566,22 +545,8 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     setOptimizedText('Capturing screenshot...');
 
     try {
-      // 🆕 Check quota before making request
-      const canProceed = await canMakeRequest();
-      if (!canProceed) {
-        const quotaStatus = await getQuotaStatus();
-        setOptimizedText(
-          `❌ Daily limit reached (${quotaStatus.dailyLimit} optimizations/day)\n\n` +
-          `Resets ${formatResetTime(quotaStatus.resetTime)}\n\n` +
-          `💡 To get unlimited usage, use your own API key via Settings ⚙️`
-        );
-        setIsCapturing(false);
-        setIsLoading(false);
-        return;
-      }
-
       // Get current provider configuration
-      const { aiProvider = 'default', aiProviderConfig = {} } =
+      const { aiProvider = 'userFirebase', aiProviderConfig = {} } =
         await chrome.storage.local.get(['aiProvider', 'aiProviderConfig']);
 
       const provider = getProvider(aiProvider);
@@ -592,8 +557,7 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
           `❌ Screenshot mode requires Vision API support\n\n` +
           `Current provider: ${provider.name}\n\n` +
           `💡 Supported providers:\n` +
-          `• Default (Free Tier)\n` +
-          `• Your Own Firebase\n` +
+          `• Firebase with Gemini\n` +
           `• OpenAI GPT-4o / GPT-4-turbo\n` +
           `• Anthropic Claude 3.5\n\n` +
           `Change provider in Settings ⚙️`
@@ -632,9 +596,6 @@ Tasks:
 
       // 3. Call provider's vision API for analysis
       const analysisResult = await provider.analyzeImage!(captureResult.dataUrl, visionPrompt, aiProviderConfig);
-
-      // Increment usage counter (only for default provider)
-      await incrementUsage();
 
       // 4. Parse Vision API JSON response
       try {

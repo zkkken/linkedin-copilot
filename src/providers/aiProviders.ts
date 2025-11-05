@@ -6,28 +6,24 @@
 import type { AIProvider } from './types';
 
 /**
- * Default Provider: Uses the extension's Firebase configuration
- * Limited to 10 optimizations per day (free tier)
+ * Parse Firebase config from code string
+ * Accepts formats like: const firebaseConfig = { ... } or just { ... }
  */
-const defaultProvider: AIProvider = {
-  id: 'default',
-  name: 'Default (Free Tier - 10/day)',
-  description: 'Use our shared Firebase + Gemini 2.5 Flash. Limited to 10 optimizations per day.',
-  requiresConfig: false,
-  configFields: [],
-  supportsVision: true,
+function parseFirebaseConfig(configStr: string): any {
+  try {
+    // Remove 'const firebaseConfig =' and any semicolons
+    let cleanStr = configStr.trim();
+    cleanStr = cleanStr.replace(/^(const|let|var)\s+\w+\s*=\s*/, '');
+    cleanStr = cleanStr.replace(/;+$/, '');
+    cleanStr = cleanStr.trim();
 
-  generateContent: async (prompt: string) => {
-    const { model } = await import('../firebase');
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  },
-
-  analyzeImage: async (imageDataUrl: string, prompt: string) => {
-    const { analyzeScreenshot } = await import('../firebase');
-    return await analyzeScreenshot(imageDataUrl, prompt);
+    // Parse the JSON object
+    const config = JSON.parse(cleanStr);
+    return config;
+  } catch (error) {
+    throw new Error('Invalid Firebase config format. Please paste the entire firebaseConfig object.');
   }
-};
+}
 
 /**
  * User Firebase Provider: User provides their own Firebase configuration
@@ -35,54 +31,26 @@ const defaultProvider: AIProvider = {
  */
 const userFirebaseProvider: AIProvider = {
   id: 'userFirebase',
-  name: 'Your Own Firebase (Unlimited)',
-  description: 'Connect your own Firebase project with Vertex AI. No daily limits - you control the costs.',
+  name: 'Firebase with Gemini (Unlimited)',
+  description: 'Connect your own Firebase project with Gemini AI. No daily limits - you control the costs. Just paste your entire Firebase config.',
   requiresConfig: true,
   supportsVision: true,
   configFields: [
     {
-      key: 'apiKey',
-      label: 'Firebase API Key',
-      type: 'password',
-      placeholder: 'AIza...',
+      key: 'firebaseConfigRaw',
+      label: 'Firebase Configuration',
+      type: 'textarea',
+      placeholder: `const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abc123",
+  measurementId: "G-XXXXXXXXXX"
+};`,
       required: true,
-      helpText: 'Get from Firebase Console → Project Settings → General'
-    },
-    {
-      key: 'authDomain',
-      label: 'Auth Domain',
-      type: 'text',
-      placeholder: 'your-project.firebaseapp.com',
-      required: true
-    },
-    {
-      key: 'projectId',
-      label: 'Project ID',
-      type: 'text',
-      placeholder: 'your-project-id',
-      required: true,
-      helpText: 'Your Firebase project identifier'
-    },
-    {
-      key: 'storageBucket',
-      label: 'Storage Bucket',
-      type: 'text',
-      placeholder: 'your-project.appspot.com',
-      required: true
-    },
-    {
-      key: 'messagingSenderId',
-      label: 'Messaging Sender ID',
-      type: 'text',
-      placeholder: '1234567890',
-      required: true
-    },
-    {
-      key: 'appId',
-      label: 'App ID',
-      type: 'text',
-      placeholder: '1:1234567890:web:abc123',
-      required: true
+      helpText: 'Paste your entire firebaseConfig object from Firebase Console → Project Settings → General → Your apps'
     },
     {
       key: 'location',
@@ -96,7 +64,10 @@ const userFirebaseProvider: AIProvider = {
 
   generateContent: async (prompt: string, config: any) => {
     const { initializeApp, getApps } = await import('firebase/app');
-    const { getVertexAI, getGenerativeModel } = await import('firebase/vertexai');
+    const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
+
+    // Parse Firebase config from the raw string
+    const firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
 
     // Check if app already exists
     let app;
@@ -108,21 +79,21 @@ const userFirebaseProvider: AIProvider = {
       app = existingApp;
     } else {
       app = initializeApp({
-        apiKey: config.apiKey,
-        authDomain: config.authDomain,
-        projectId: config.projectId,
-        storageBucket: config.storageBucket,
-        messagingSenderId: config.messagingSenderId,
-        appId: config.appId
+        apiKey: firebaseConfig.apiKey,
+        authDomain: firebaseConfig.authDomain,
+        projectId: firebaseConfig.projectId,
+        storageBucket: firebaseConfig.storageBucket,
+        messagingSenderId: firebaseConfig.messagingSenderId,
+        appId: firebaseConfig.appId
       }, userAppName);
     }
 
-    const vertexAI = getVertexAI(app, {
-      location: config.location || 'us-central1'
+    const ai = getAI(app, {
+      backend: new VertexAIBackend(config.location || 'us-central1')
     });
 
-    const model = getGenerativeModel(vertexAI, {
-      model: 'gemini-2.0-flash-exp'
+    const model = getGenerativeModel(ai, {
+      model: 'gemini-2.5-flash'
     });
 
     const result = await model.generateContent(prompt);
@@ -131,7 +102,10 @@ const userFirebaseProvider: AIProvider = {
 
   analyzeImage: async (imageDataUrl: string, prompt: string, config: any) => {
     const { initializeApp, getApps } = await import('firebase/app');
-    const { getVertexAI, getGenerativeModel } = await import('firebase/vertexai');
+    const { getAI, getGenerativeModel, VertexAIBackend } = await import('firebase/ai');
+
+    // Parse Firebase config from the raw string
+    const firebaseConfig = parseFirebaseConfig(config.firebaseConfigRaw);
 
     // Initialize or get existing app
     let app;
@@ -143,21 +117,21 @@ const userFirebaseProvider: AIProvider = {
       app = existingApp;
     } else {
       app = initializeApp({
-        apiKey: config.apiKey,
-        authDomain: config.authDomain,
-        projectId: config.projectId,
-        storageBucket: config.storageBucket,
-        messagingSenderId: config.messagingSenderId,
-        appId: config.appId
+        apiKey: firebaseConfig.apiKey,
+        authDomain: firebaseConfig.authDomain,
+        projectId: firebaseConfig.projectId,
+        storageBucket: firebaseConfig.storageBucket,
+        messagingSenderId: firebaseConfig.messagingSenderId,
+        appId: firebaseConfig.appId
       }, userAppName);
     }
 
-    const vertexAI = getVertexAI(app, {
-      location: config.location || 'us-central1'
+    const ai = getAI(app, {
+      backend: new VertexAIBackend(config.location || 'us-central1')
     });
 
-    const model = getGenerativeModel(vertexAI, {
-      model: 'gemini-2.0-flash-exp'
+    const model = getGenerativeModel(ai, {
+      model: 'gemini-2.5-flash'
     });
 
     const base64Data = imageDataUrl.split(',')[1];
@@ -386,7 +360,6 @@ const claudeProvider: AIProvider = {
  * All available AI providers
  */
 export const AI_PROVIDERS: Record<string, AIProvider> = {
-  default: defaultProvider,
   userFirebase: userFirebaseProvider,
   openai: openaiProvider,
   claude: claudeProvider
@@ -396,7 +369,7 @@ export const AI_PROVIDERS: Record<string, AIProvider> = {
  * Get provider by ID
  */
 export function getProvider(providerId: string): AIProvider {
-  return AI_PROVIDERS[providerId] || AI_PROVIDERS.default;
+  return AI_PROVIDERS[providerId] || AI_PROVIDERS.userFirebase;
 }
 
 /**

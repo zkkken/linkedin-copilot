@@ -6,7 +6,7 @@
 export interface ConfigField {
   key: string;
   label: string;
-  type: 'text' | 'password' | 'select';
+  type: 'text' | 'password' | 'select' | 'textarea';
   placeholder?: string;
   options?: string[];
   required: boolean;
