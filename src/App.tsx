@@ -364,22 +364,26 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
 
   // Handle section change
   const handleSectionChange = (newSection: SectionType) => {
+    console.log(`[Section Change] Switching from "${currentSection}" to "${newSection}"`);
     setCurrentSection(newSection);
 
     // 🆕 Prefer cached optimization result when available (issue #5)
     const cachedResult = optimizedCache[newSection];
     if (cachedResult) {
+      console.log(`[Section Change] Found cached result for "${newSection}"`);
       setStructuredResult(cachedResult);
       setOptimizedText(''); // Clear previous plain-text output
     } else {
       setStructuredResult(null);
-      if (optimizedText && !optimizedText.toLowerCase().includes('waiting') && !optimizedText.includes('PDF')) {
-        setOptimizedText('Section changed. Please rerun the optimization...');
+      // Only show "rerun" message if there was a previous optimization result
+      if (optimizedText && !optimizedText.toLowerCase().includes('waiting') && !optimizedText.includes('PDF') && !optimizedText.includes('Screenshot') && !optimizedText.includes('analyzed')) {
+        setOptimizedText('Section changed. Click "Optimize" to generate suggestions for this section.');
       }
     }
 
     if (isPdfSource) {
       const entries = sectionEntries[newSection];
+      console.log(`[Section Change] Available entries for "${newSection}":`, entries?.length || 0);
       if (entries && entries.length > 0) {
         const currentIndex = sectionEntryIndex[newSection] ?? 0;
         const safeIndex = Math.min(currentIndex, entries.length - 1);
@@ -388,8 +392,14 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
           [newSection]: safeIndex
         }));
         setResumeContent(entries[safeIndex]);
+        console.log(`[Section Change] Loaded entry ${safeIndex} for "${newSection}", content length: ${entries[safeIndex].length} chars`);
       } else {
         setResumeContent('');
+        console.log(`[Section Change] No content available for "${newSection}"`);
+        // Show helpful message if no content for this section
+        if (!cachedResult) {
+          setOptimizedText(`No content found for "${newSection}" in the screenshot. Try capturing a different part of the page or enter content manually.`);
+        }
       }
     }
   };
@@ -437,6 +447,16 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
       const contentToOptimize = resumeContent.trim()
         ? resumeContent
         : (isPdfSource && fullPdfText ? fullPdfText : resumeContent);
+
+      // Check if we have content to optimize
+      if (!contentToOptimize.trim()) {
+        console.error('[Optimize] No content available for current section:', currentSection);
+        setOptimizedText(`❌ No content available for "${currentSection}".\n\nPlease:\n1. Select a different section that was captured in the screenshot, or\n2. Enter content manually in the text area above.`);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('[Optimize] Content length:', contentToOptimize.length, 'chars');
 
       // Use structured prompt (returns JSON)
       const prompt = useStructuredOutput
@@ -648,7 +668,10 @@ Tasks:
           const normalizedKey = normalizeVisionKey(rawKey);
           const sectionType = fieldMapping[normalizedKey];
 
+          console.log(`[Screenshot] Processing key: "${rawKey}" -> normalized: "${normalizedKey}" -> section: "${sectionType}"`);
+
           if (!sectionType) {
+            console.log(`[Screenshot] Skipping unknown key: "${rawKey}"`);
             continue;
           }
 
@@ -659,8 +682,13 @@ Tasks:
           if (content) {
             entries[sectionType] = [content];
             hasAnyContent = true;
+            console.log(`[Screenshot] Added content for "${sectionType}", length: ${content.length} chars`);
+          } else {
+            console.log(`[Screenshot] Empty content for "${sectionType}"`);
           }
         }
+
+        console.log(`[Screenshot] Total sections extracted:`, Object.keys(entries));
 
         if (!hasAnyContent) {
           throw new Error('No LinkedIn content could be identified in the screenshot');
@@ -678,19 +706,16 @@ Tasks:
         });
         setSectionEntryIndex(defaultIndexes);
 
-        // 7. Keep current section selection (don't auto-switch)
+        // 7. DON'T auto-switch section - keep user's current selection
         // Only update content if current section exists in extracted data
         if (entries[currentSection]) {
           const content = entries[currentSection]![0];
           setResumeContent(content);
+          console.log(`[Screenshot] Loaded content for section: ${currentSection}`);
         } else {
-          // If current section not found, switch to first detected section
-          const firstSection = Object.keys(entries)[0] as SectionType;
-          setCurrentSection(firstSection);
-          const firstContent = entries[firstSection];
-          if (firstContent && firstContent[0]) {
-            setResumeContent(firstContent[0]);
-          }
+          // Current section not found, but don't switch - let user choose
+          setResumeContent('');
+          console.log(`[Screenshot] Current section "${currentSection}" not found in screenshot. Available sections:`, Object.keys(entries));
         }
 
         setOptimizedText('✅ Screenshot content analyzed! Select the section you want to optimize, then click "Optimize".');
