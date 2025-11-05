@@ -8,6 +8,7 @@ import type { AIProvider } from './types';
 /**
  * Parse Firebase config from code string
  * Accepts formats like: const firebaseConfig = { ... } or just { ... }
+ * Uses regex parsing to avoid CSP violations (no eval/Function)
  */
 function parseFirebaseConfig(configStr: string): any {
   try {
@@ -21,14 +22,38 @@ function parseFirebaseConfig(configStr: string): any {
     try {
       return JSON.parse(cleanStr);
     } catch (jsonError) {
-      // If JSON.parse fails, it's likely a JavaScript object literal
-      // Use Function constructor to safely evaluate it
-      const config = new Function('return ' + cleanStr)();
-
-      // Validate that it's an object and has required Firebase fields
-      if (typeof config !== 'object' || !config.apiKey || !config.projectId) {
-        throw new Error('Missing required Firebase fields (apiKey, projectId)');
+      // If JSON.parse fails, parse as JavaScript object literal using regex
+      // Extract the object content (remove outer braces)
+      const objectMatch = cleanStr.match(/^\s*\{([\s\S]*)\}\s*$/);
+      if (!objectMatch) {
+        throw new Error('Invalid format - expected an object {...}');
       }
+
+      const objectContent = objectMatch[1];
+      const config: any = {};
+
+      // Parse key-value pairs using regex
+      // Matches: key: "value" or key: 'value' or key: value
+      const keyValueRegex = /(\w+)\s*:\s*(?:"([^"]*)"|'([^']*)'|([^,}\s]+))/g;
+      let match;
+
+      while ((match = keyValueRegex.exec(objectContent)) !== null) {
+        const key = match[1];
+        // Value can be in double quotes (match[2]), single quotes (match[3]), or unquoted (match[4])
+        const value = match[2] || match[3] || match[4];
+        config[key] = value;
+      }
+
+      // Validate required fields
+      if (!config.apiKey || !config.projectId) {
+        throw new Error('Missing required fields: apiKey and projectId are required');
+      }
+
+      console.log('[parseFirebaseConfig] Parsed config:', {
+        keys: Object.keys(config),
+        projectId: config.projectId,
+        hasApiKey: !!config.apiKey
+      });
 
       return config;
     }
