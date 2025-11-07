@@ -10,7 +10,7 @@ import { InputModeSelector, type InputMode } from './components/InputModeSelecto
 import { ScreenshotDisclaimer } from './components/ScreenshotDisclaimer';
 import { OptimizationResult } from './components/OptimizationResult';
 import { SettingsPage } from './components/SettingsPage';
-import { generatePrompt, detectSectionType } from './utils/promptTemplates';
+import { generatePrompt } from './utils/promptTemplates';
 import { generateStructuredPrompt, parseStructuredResponse } from './utils/structuredPrompts';
 import { getSectionConfig } from './utils/sectionConfigs';
 import { captureCurrentTab, isLinkedInPage } from './utils/screenshotCapture';
@@ -37,7 +37,7 @@ const SECTION_KEYWORDS: Record<SectionType, string[]> = {
   education: ['education', 'academic background'],
   'licenses-certifications': ['certifications', 'certification', 'licenses', 'license'],
   skills: ['skills', 'core skills', 'competencies', 'capabilities'],
-  projects: ['projects', 'project experience', 'project highlights', 'portfolio projects'],
+  projects: ['projects', 'project experience', 'project highlights', 'portfolio projects', 'projects and awards'],
   publications: ['publications', 'papers', 'articles'],
   'honors-awards': ['awards', 'honors', 'achievements'],
   'volunteer-experience': ['volunteer experience', 'volunteer', 'volunteering history']
@@ -74,11 +74,16 @@ const detectSectionFromLine = (line: string): SectionType | null => {
   return null;
 };
 
+// Note: Entry splitting is now handled by AI, not client-side
+// The AI returns structured data with multiple entries when appropriate
+
+/**
+ * Split resume text into sections and intelligently split multi-entry sections
+ */
 const splitResumeSections = (text: string): SectionEntriesMap => {
-  const sections: SectionEntriesMap = {};
+  const sections: Record<SectionType, string> = {} as any;
   let currentSection: SectionType | null = null;
   let buffer: string[] = [];
-  let emptyLineCount = 0;
 
   const pushBuffer = () => {
     if (!currentSection) return;
@@ -87,23 +92,27 @@ const splitResumeSections = (text: string): SectionEntriesMap => {
       buffer = [];
       return;
     }
+    // Collect all content for this section first
     if (!sections[currentSection]) {
-      sections[currentSection] = [];
+      sections[currentSection] = combined;
+      console.log(`[PDF Parser] Detected section: "${currentSection}" with ${combined.length} characters`);
+    } else {
+      sections[currentSection] += '\n\n' + combined;
     }
-    sections[currentSection]!.push(combined);
     buffer = [];
   };
 
   const lines = text.split(/\r?\n/);
+  console.log(`[PDF Parser] Processing ${lines.length} lines from PDF`);
 
   for (const rawLine of lines) {
     const line = rawLine.trimEnd();
     const detected = detectSectionFromLine(line);
 
     if (detected) {
+      console.log(`[PDF Parser] Line "${line.substring(0, 50)}..." → detected as section: ${detected}`);
       pushBuffer();
       currentSection = detected;
-      emptyLineCount = 0;
       continue;
     }
 
@@ -111,93 +120,26 @@ const splitResumeSections = (text: string): SectionEntriesMap => {
       continue;
     }
 
-    if (!line.trim()) {
-      emptyLineCount += 1;
-      if (emptyLineCount >= 2) {
-        pushBuffer();
-        emptyLineCount = 0;
-      } else if (buffer.length && buffer[buffer.length - 1] !== '') {
-        buffer.push('');
-      }
-      continue;
-    }
-
-    emptyLineCount = 0;
     buffer.push(line);
   }
 
   pushBuffer();
 
-  return sections;
-};
+  console.log(`[PDF Parser] Total sections detected: ${Object.keys(sections).length}`, Object.keys(sections));
 
-/**
- * Generate a meaningful preview label for an entry based on section type and content
- */
-const generateEntryPreview = (sectionType: SectionType, entryContent: string, maxLength: number = 35): string => {
-  const lines = entryContent.split('\n').map(l => l.trim()).filter(Boolean);
-  if (lines.length === 0) return 'Empty entry';
-
-  switch (sectionType) {
-    case 'experience': {
-      // Try to extract company name or job title from first few lines
-      const titleLine = lines[0];
-      const companyLine = lines.length > 1 ? lines[1] : '';
-
-      // Common patterns: "Job Title at Company" or "Company - Job Title"
-      if (titleLine.toLowerCase().includes(' at ')) {
-        const parts = titleLine.split(/ at /i);
-        return parts[0].substring(0, maxLength);
-      }
-      if (companyLine && companyLine.length > 0) {
-        return companyLine.substring(0, maxLength);
-      }
-      return titleLine.substring(0, maxLength);
-    }
-
-    case 'education': {
-      // Try to extract school name or degree
-      const schoolOrDegree = lines[0];
-      return schoolOrDegree.substring(0, maxLength);
-    }
-
-    case 'projects': {
-      // Use project name (usually first line)
-      const projectName = lines[0];
-      return projectName.substring(0, maxLength);
-    }
-
-    case 'licenses-certifications': {
-      // Use certification name
-      const certName = lines[0];
-      return certName.substring(0, maxLength);
-    }
-
-    case 'honors-awards': {
-      // Use award title
-      const awardTitle = lines[0];
-      return awardTitle.substring(0, maxLength);
-    }
-
-    case 'volunteer-experience': {
-      // Use role or organization
-      const roleOrOrg = lines[0];
-      return roleOrOrg.substring(0, maxLength);
-    }
-
-    case 'skills': {
-      // Use category name if available, or first skill
-      const category = lines[0];
-      return category.substring(0, maxLength);
-    }
-
-    default: {
-      // For other sections, use first line or first N characters
-      const preview = lines[0].substring(0, maxLength);
-      return preview || 'Entry';
+  // Return sections as-is (AI will handle splitting into multiple entries)
+  const result: SectionEntriesMap = {};
+  for (const [section, content] of Object.entries(sections) as Array<[SectionType, string]>) {
+    if (content && content.trim()) {
+      result[section] = [content]; // Wrap in array for consistency
+      console.log(`[PDF Parser] Section "${section}": ${content.length} chars`);
     }
   }
+
+  console.log(`[PDF Parser] ✅ Extracted ${Object.keys(result).length} sections:`, Object.keys(result).join(', '));
+  return result;
 };
+
 
 function App() {
   // State management (project specific)
@@ -331,34 +273,36 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     localStorage.setItem('hasSeenUserGuide', 'true');
   };
 
+  // Note: Batch optimization removed - user now manually clicks "Optimize" for each section
+  // AI will return multiple entries if it detects them in the content
+
   // Handle PDF text extraction
-  const handlePDFTextExtracted = (text: string, fileName: string) => {
+  const handlePDFTextExtracted = async (text: string, fileName: string) => {
+    console.log(`[PDF] Received text from parser: ${text.length} characters`);
+    console.log(`[PDF] Text preview (first 300 chars):\n${text.substring(0, 300)}`);
+
     const cleanedText = text.trim();
     setUploadedFileName(fileName);
     setFullPdfText(cleanedText); // 🆕 Store the complete PDF text
 
-    const entries = splitResumeSections(cleanedText);
-    setSectionEntries(entries);
+    // Parse sections (without splitting into entries - AI will handle that)
+    const sections = splitResumeSections(cleanedText);
+    setSectionEntries(sections);
 
-    const defaultIndexes: Partial<Record<SectionType, number>> = {};
-    (Object.keys(entries) as SectionType[]).forEach((section) => {
-      defaultIndexes[section] = 0;
-    });
-    setSectionEntryIndex(defaultIndexes);
+    console.log(`[PDF] Extracted ${Object.keys(sections).length} sections:`, Object.keys(sections));
 
-    // 🆕 Keep current section selection (don't auto-switch after upload)
-    // Only update content if current section exists in extracted data
-    if (entries[currentSection]) {
-      const initialContent = entries[currentSection]![0];
-      setResumeContent(initialContent);
+    // Set content for current section (if available)
+    if (sections[currentSection] && sections[currentSection].length > 0) {
+      const sectionContent = sections[currentSection][0]; // Always use first entry (entire section)
+      setResumeContent(sectionContent);
+      console.log(`[PDF] Loaded ${currentSection} section: ${sectionContent.length} chars`);
     } else {
-      // Current section not found in PDF - keep selection but clear content
-      // User can manually switch to another section
       setResumeContent('');
+      console.log(`[PDF] No content found for ${currentSection} section`);
     }
 
     setIsPdfSource(true);
-    setOptimizedText('PDF parsed successfully. Select the section you want to optimize.');
+    setOptimizedText(`✅ PDF parsed successfully!\n\n📄 Detected ${Object.keys(sections).length} sections: ${Object.keys(sections).join(', ')}\n\n👉 Select a section above and click "Optimize" to get AI suggestions.`);
   };
 
   // Handle section change
@@ -368,7 +312,9 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     // 🆕 Prefer cached optimization result when available (issue #5)
     const cachedResult = optimizedCache[newSection];
     if (cachedResult) {
-      setStructuredResult(cachedResult);
+      // Convert cache object to array format for OptimizationResult
+      const entriesArray = Object.values(cachedResult);
+      setStructuredResult(entriesArray.length === 1 ? entriesArray[0] : entriesArray);
       setOptimizedText(''); // Clear previous plain-text output
     } else {
       setStructuredResult(null);
@@ -393,15 +339,6 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
     }
   };
 
-  const handleSectionEntrySelect = (section: SectionType, index: number) => {
-    const entries = sectionEntries[section];
-    if (!entries || !entries[index]) return;
-    setSectionEntryIndex((prev) => ({
-      ...prev,
-      [section]: index
-    }));
-    setResumeContent(entries[index]);
-  };
 
   // Handle privacy consent
   const handleConsentResponse = (agreed: boolean) => {
@@ -609,23 +546,32 @@ const [fullPdfText, setFullPdfText] = useState<string>(''); // 🆕 Store the fu
 
       // 2. Build analysis prompt (extract text)
       const visionPrompt = `
-Please analyze this LinkedIn profile screenshot and extract every visible piece of text.
+Please analyze this LinkedIn profile screenshot and extract every visible piece of text with careful attention to multiple entries.
 
 Tasks:
-1. Use OCR to capture all text in the image.
+1. Use OCR to capture all text in the image with high accuracy.
 2. Identify and group LinkedIn profile sections (if visible):
    - Headline
    - About
-   - Experience
-   - Education
+   - Experience (may have MULTIPLE jobs/positions)
+   - Education (may have MULTIPLE degrees/schools)
    - Skills
-   - Projects
-   - Licenses & Certifications
-   - Honors & Awards
-   - Volunteer Experience
-3. Return ONLY JSON with the full text for each visible section.
-4. If a section is not visible, set its value to an empty string "".
-5. Preserve the original formatting, including line breaks and bullet characters.
+   - Projects (may have MULTIPLE projects)
+   - Publications (may have MULTIPLE publications)
+   - Licenses & Certifications (may have MULTIPLE certifications)
+   - Honors & Awards (may have MULTIPLE awards)
+   - Volunteer Experience (may have MULTIPLE volunteer roles)
+
+3. For sections with MULTIPLE entries:
+   - Preserve clear boundaries between entries
+   - Keep entry headers (job titles, school names, project names, publication titles, etc.) on their own lines
+   - Preserve empty lines that separate different entries
+   - DO NOT merge multiple entries into continuous text
+
+4. Return ONLY JSON with the full text for each visible section.
+5. If a section is not visible, set its value to an empty string "".
+6. Preserve the original formatting, including line breaks, bullet characters, and spacing between entries.
+7. IMPORTANT: When a section contains multiple entries (e.g., 3 jobs, 2 degrees, 2 publications), preserve the visual separation between them.
 `;
 
       // 3. Call provider's vision API for analysis
@@ -662,6 +608,7 @@ Tasks:
           education: 'education',
           skills: 'skills',
           projects: 'projects',
+          publications: 'publications',
           licensescertifications: 'licenses-certifications',
           honorsawards: 'honors-awards',
           volunteerexperience: 'volunteer-experience',
@@ -681,50 +628,7 @@ Tasks:
           return lines.join('\n');
         };
 
-        // Split content into multiple entries (like PDF mode)
-        // Splits by 2+ consecutive empty lines OR by detecting new entries (company/school names)
-        const splitIntoMultipleEntries = (content: string, sectionType: SectionType): string[] => {
-          if (!content) return [];
-
-          // Don't split these single-content sections
-          if (sectionType === 'general' || sectionType === 'headline' || sectionType === 'about' || sectionType === 'skills') {
-            return [content];
-          }
-
-          const entries: string[] = [];
-          let currentEntry: string[] = [];
-          let emptyLineCount = 0;
-
-          const lines = content.split(/\r?\n/);
-
-          for (const line of lines) {
-            const trimmed = line.trim();
-
-            // If we encounter 2+ empty lines, push current entry and start new one
-            if (!trimmed) {
-              emptyLineCount++;
-              if (emptyLineCount >= 2 && currentEntry.length > 0) {
-                entries.push(currentEntry.join('\n').trim());
-                currentEntry = [];
-                emptyLineCount = 0;
-              } else if (currentEntry.length > 0 && currentEntry[currentEntry.length - 1] !== '') {
-                currentEntry.push('');
-              }
-              continue;
-            }
-
-            emptyLineCount = 0;
-            currentEntry.push(line);
-          }
-
-          // Push final entry
-          if (currentEntry.length > 0) {
-            entries.push(currentEntry.join('\n').trim());
-          }
-
-          return entries.filter(e => e.length > 0);
-        };
-
+        // Store section content (AI will handle splitting into multiple entries)
         for (const [rawKey, rawValue] of Object.entries(extractedData)) {
           const normalizedKey = normalizeVisionKey(rawKey);
           const sectionType = fieldMapping[normalizedKey];
@@ -738,12 +642,9 @@ Tasks:
             content = cleanSkillsText(content);
           }
           if (content) {
-            // Split into multiple entries (e.g., multiple jobs, schools)
-            const splitEntries = splitIntoMultipleEntries(content, sectionType);
-            if (splitEntries.length > 0) {
-              entries[sectionType] = splitEntries;
-              hasAnyContent = true;
-            }
+            // Store full section content (wrapped in array for consistency)
+            entries[sectionType] = [content];
+            hasAnyContent = true;
           }
         }
 
@@ -778,13 +679,9 @@ Tasks:
           }
         }
 
-        // Automatically trigger optimization after state updates
-        setOptimizedText('✅ Screenshot content analyzed! Now optimizing...');
-
-        // Use setTimeout to ensure state updates are applied before optimization runs
-        setTimeout(() => {
-          handleOptimize();
-        }, 100);
+        // 8. Show success message - user now manually optimizes sections
+        setIsCapturing(false);
+        setOptimizedText(`✅ Screenshot analyzed successfully!\n\n📄 Detected ${Object.keys(entries).length} sections: ${Object.keys(entries).join(', ')}\n\n👉 Select a section above and click "Optimize" to get AI suggestions.`);
 
       } catch (parseError) {
         console.error('Failed to parse Vision API response:', parseError);
@@ -1067,40 +964,6 @@ Tasks:
               </label>
             </div>
             <p className="text-xs text-gray-500 mb-2">{config.description}</p>
-            {isPdfSource && (
-              hasExtractedEntries ? (
-                <div className="mb-2 flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex flex-wrap gap-2">
-                    {entriesForCurrentSection.map((entryContent, index) => {
-                      const isActive = index === activeEntryIndex;
-                      const previewLabel = generateEntryPreview(currentSection, entryContent);
-                      return (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleSectionEntrySelect(currentSection, index)}
-                          className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
-                            isActive
-                              ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
-                              : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
-                          }`}
-                          title={`${previewLabel} (Entry ${index + 1})`}
-                        >
-                          {previewLabel}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <span className="text-xs text-[#0A66C2]">
-                    Auto-extracted {entriesForCurrentSection.length} entries
-                  </span>
-                </div>
-              ) : (
-                <div className="mb-2 p-3 bg-[#EAF3FF] border border-[#B3D6F2] rounded text-xs text-[#0A66C2]">
-                  💡 AI will analyze the full PDF and surface details related to this section.
-                </div>
-              )
-            )}
 
             {/* 🎯 Show textarea only in manual mode */}
             {inputMode === 'manual' ? (

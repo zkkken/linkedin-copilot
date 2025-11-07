@@ -252,34 +252,33 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
 
       return (
         <div className="space-y-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">💼</span>
-              Optimized experience entry
-            </h3>
-            {experienceList.length > 1 && (
-              <div className="flex flex-wrap gap-2">
-                {experienceList.map((experience: LinkedInExperienceStructured, index: number) => {
-                  const isActive = index === safeIndex;
-                  return (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => setActiveExperienceIndex(index)}
-                      className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
-                        isActive
-                          ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
-                          : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
-                      }`}
-                      title={experience.title || `Entry ${index + 1}`}
-                    >
-                      Entry {index + 1}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
+            <span className="mr-2">💼</span>
+            Optimized experience entry
+          </h3>
+
+          {experienceList.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {experienceList.map((experience: LinkedInExperienceStructured, index: number) => {
+                const isActive = index === safeIndex;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveExperienceIndex(index)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                        : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                    }`}
+                    title={experience.title || `Entry ${index + 1}`}
+                  >
+                    Entry {index + 1}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <TabButtons />
 
@@ -391,16 +390,62 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
         </div>
       );
 
-    case 'education':
-      const educationData = data as LinkedInEducationStructured;
+    case 'education': {
+      const educationCandidates = Array.isArray((data as any)?.educations)
+        ? (data as any).educations
+        : Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
+
+      const educationList = educationCandidates.filter(
+        (item: any): item is LinkedInEducationStructured =>
+          item &&
+          typeof item.degree === 'string' &&
+          typeof item.school === 'string'
+      );
+
+      if (!educationList.length) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            Structured education data was not detected.
+          </div>
+        );
+      }
+
+      const safeIndex = Math.min(activeExperienceIndex, educationList.length - 1);
+      const activeEducation = educationList[safeIndex];
+
       return (
         <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">🎓</span>
-              Optimized education entry
-            </h3>
-          </div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
+            <span className="mr-2">🎓</span>
+            Optimized education entry
+          </h3>
+
+          {educationList.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {educationList.map((education: LinkedInEducationStructured, index: number) => {
+                const isActive = index === safeIndex;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveExperienceIndex(index)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                        : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                    }`}
+                    title={education.school || `Entry ${index + 1}`}
+                  >
+                    {education.school ? education.school.substring(0, 30) + (education.school.length > 30 ? '...' : '') : `Entry ${index + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <TabButtons />
 
@@ -408,46 +453,46 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             <>
               <StructuredField
                 label="Degree"
-                value={educationData.degree}
+                value={activeEducation.degree}
                 maxLength={100}
                 icon="📚"
               />
 
               <StructuredField
                 label="School"
-                value={educationData.school}
+                value={activeEducation.school}
                 maxLength={100}
                 icon="🏫"
               />
 
-              {educationData.fieldOfStudy && (
+              {activeEducation.fieldOfStudy && (
                 <StructuredField
                   label="Field of Study"
-                  value={educationData.fieldOfStudy}
+                  value={activeEducation.fieldOfStudy}
                   icon="🔬"
                 />
               )}
 
-              {educationData.grade && (
+              {activeEducation.grade && (
                 <StructuredField
                   label="Grade"
-                  value={educationData.grade}
+                  value={activeEducation.grade}
                   icon="⭐"
                 />
               )}
 
               <StructuredField
                 label="Highlights"
-                value={educationData.highlights}
+                value={activeEducation.highlights}
                 maxLength={600}
                 icon="✨"
                 multiline
               />
 
-              {educationData.activities && (
+              {activeEducation.activities && (
                 <StructuredField
                   label="Activities"
-                  value={educationData.activities}
+                  value={activeEducation.activities}
                   icon="🎯"
                   multiline
                 />
@@ -456,21 +501,68 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           )}
 
           {activeTab === 'suggestions' && (
-            <SuggestionsView suggestions={educationData.suggestions || []} />
+            <SuggestionsView suggestions={activeEducation.suggestions || []} />
           )}
         </div>
       );
+    }
 
-    case 'licenses-certifications':
-      const certData = data as LinkedInCertificationStructured;
+    case 'licenses-certifications': {
+      const certCandidates = Array.isArray((data as any)?.certifications)
+        ? (data as any).certifications
+        : Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
+
+      const certList = certCandidates.filter(
+        (item: any): item is LinkedInCertificationStructured =>
+          item &&
+          typeof item.name === 'string' &&
+          typeof item.organization === 'string'
+      );
+
+      if (!certList.length) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            Structured certification data was not detected.
+          </div>
+        );
+      }
+
+      const safeIndex = Math.min(activeExperienceIndex, certList.length - 1);
+      const activeCert = certList[safeIndex];
+
       return (
         <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">📜</span>
-              Optimized licenses & certifications
-            </h3>
-          </div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
+            <span className="mr-2">📜</span>
+            Optimized licenses & certifications
+          </h3>
+
+          {certList.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {certList.map((cert: LinkedInCertificationStructured, index: number) => {
+                const isActive = index === safeIndex;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveExperienceIndex(index)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                        : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                    }`}
+                    title={cert.name || `Entry ${index + 1}`}
+                  >
+                    {cert.name ? cert.name.substring(0, 30) + (cert.name.length > 30 ? '...' : '') : `Entry ${index + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <TabButtons />
 
@@ -478,37 +570,37 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             <>
               <StructuredField
                 label="Certification Name"
-                value={certData.name}
+                value={activeCert.name}
                 maxLength={100}
                 icon="📋"
               />
 
               <StructuredField
                 label="Issuing Organization"
-                value={certData.organization}
+                value={activeCert.organization}
                 maxLength={100}
                 icon="🏢"
               />
 
-              {certData.issueDate && (
+              {activeCert.issueDate && (
                 <StructuredField
                   label="Issue Date"
-                  value={certData.issueDate}
+                  value={activeCert.issueDate}
                   icon="📅"
                 />
               )}
 
-              {certData.credentialId && (
+              {activeCert.credentialId && (
                 <StructuredField
                   label="Credential ID"
-                  value={certData.credentialId}
+                  value={activeCert.credentialId}
                   icon="🔖"
                 />
               )}
 
               <StructuredField
                 label="Applicability / capability summary"
-                value={certData.description}
+                value={activeCert.description}
                 maxLength={200}
                 icon="💡"
                 multiline
@@ -517,21 +609,68 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           )}
 
           {activeTab === 'suggestions' && (
-            <SuggestionsView suggestions={certData.suggestions || []} />
+            <SuggestionsView suggestions={activeCert.suggestions || []} />
           )}
         </div>
       );
+    }
 
-    case 'projects':
-      const projectData = data as LinkedInProjectStructured;
+    case 'projects': {
+      const projectCandidates = Array.isArray((data as any)?.projects)
+        ? (data as any).projects
+        : Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
+
+      const projectList = projectCandidates.filter(
+        (item: any): item is LinkedInProjectStructured =>
+          item &&
+          typeof item.name === 'string' &&
+          typeof item.description === 'string'
+      );
+
+      if (!projectList.length) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            Structured project data was not detected.
+          </div>
+        );
+      }
+
+      const safeIndex = Math.min(activeExperienceIndex, projectList.length - 1);
+      const activeProject = projectList[safeIndex];
+
       return (
         <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">🚀</span>
-              Optimized project entry
-            </h3>
-          </div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
+            <span className="mr-2">🚀</span>
+            Optimized project entry
+          </h3>
+
+          {projectList.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {projectList.map((project: LinkedInProjectStructured, index: number) => {
+                const isActive = index === safeIndex;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveExperienceIndex(index)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                        : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                    }`}
+                    title={project.name || `Entry ${index + 1}`}
+                  >
+                    {project.name ? project.name.substring(0, 30) + (project.name.length > 30 ? '...' : '') : `Entry ${index + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <TabButtons />
 
@@ -539,40 +678,40 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             <>
               <StructuredField
                 label="Project Name"
-                value={projectData.name}
+                value={activeProject.name}
                 maxLength={100}
                 icon="📌"
               />
 
-              {projectData.role && (
+              {activeProject.role && (
                 <StructuredField
                   label="Project Role"
-                  value={projectData.role}
+                  value={activeProject.role}
                   icon="👤"
                 />
               )}
 
-              {projectData.date && (
+              {activeProject.date && (
                 <StructuredField
                   label="Timeline"
-                  value={projectData.date}
+                  value={activeProject.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
                 label="Project Description"
-                value={projectData.description}
+                value={activeProject.description}
                 maxLength={1000}
                 icon="📄"
                 multiline
               />
 
-              {projectData.technologies && projectData.technologies.length > 0 && (
+              {activeProject.technologies && activeProject.technologies.length > 0 && (
                 <div className="p-4 bg-[#EAF3FF] border border-[#B3D6F2] rounded-lg">
                   <h4 className="text-sm font-semibold text-[#0A66C2] mb-2">🛠️ Tech stack</h4>
                   <div className="flex flex-wrap gap-2">
-                    {projectData.technologies.map((tech, index) => (
+                    {activeProject.technologies.map((tech: string, index: number) => (
                       <span
                         key={index}
                         className="px-2 py-1 bg-[#D8EAFE] text-[#0A66C2] rounded text-xs font-medium"
@@ -587,21 +726,68 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           )}
 
           {activeTab === 'suggestions' && (
-            <SuggestionsView suggestions={projectData.suggestions || []} />
+            <SuggestionsView suggestions={activeProject.suggestions || []} />
           )}
         </div>
       );
+    }
 
-    case 'publications':
-      const publicationData = data as LinkedInPublicationStructured;
+    case 'publications': {
+      const publicationCandidates = Array.isArray((data as any)?.publications)
+        ? (data as any).publications
+        : Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
+
+      const publicationList = publicationCandidates.filter(
+        (item: any): item is LinkedInPublicationStructured =>
+          item &&
+          typeof item.title === 'string' &&
+          typeof item.publisher === 'string'
+      );
+
+      if (!publicationList.length) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            Structured publication data was not detected.
+          </div>
+        );
+      }
+
+      const safeIndex = Math.min(activeExperienceIndex, publicationList.length - 1);
+      const activePublication = publicationList[safeIndex];
+
       return (
         <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">📚</span>
-              Optimized publication
-            </h3>
-          </div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
+            <span className="mr-2">📚</span>
+            Optimized publication
+          </h3>
+
+          {publicationList.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {publicationList.map((publication: LinkedInPublicationStructured, index: number) => {
+                const isActive = index === safeIndex;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveExperienceIndex(index)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                        : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                    }`}
+                    title={publication.title || `Entry ${index + 1}`}
+                  >
+                    {publication.title ? publication.title.substring(0, 30) + (publication.title.length > 30 ? '...' : '') : `Entry ${index + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <TabButtons />
 
@@ -609,58 +795,105 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             <>
               <StructuredField
                 label="Title"
-                value={publicationData.title}
+                value={activePublication.title}
                 maxLength={100}
                 icon="📖"
               />
 
               <StructuredField
                 label="Publisher"
-                value={publicationData.publisher}
+                value={activePublication.publisher}
                 maxLength={100}
                 icon="🏢"
               />
 
-              {publicationData.date && (
+              {activePublication.date && (
                 <StructuredField
                   label="Publication Date"
-                  value={publicationData.date}
+                  value={activePublication.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
                 label="Summary"
-                value={publicationData.description}
+                value={activePublication.description}
                 maxLength={500}
                 icon="📝"
                 multiline
               />
 
-              {publicationData.url && (
+              {activePublication.url && (
                 <div className="p-3 bg-gray-50 border border-gray-200 rounded">
-                  <p className="text-xs text-gray-600">🔗 URL: {publicationData.url}</p>
+                  <p className="text-xs text-gray-600">🔗 URL: {activePublication.url}</p>
                 </div>
               )}
             </>
           )}
 
           {activeTab === 'suggestions' && (
-            <SuggestionsView suggestions={publicationData.suggestions || []} />
+            <SuggestionsView suggestions={activePublication.suggestions || []} />
           )}
         </div>
       );
+    }
 
-    case 'honors-awards':
-      const awardData = data as LinkedInAwardStructured;
+    case 'honors-awards': {
+      const awardCandidates = Array.isArray((data as any)?.awards)
+        ? (data as any).awards
+        : Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
+
+      const awardList = awardCandidates.filter(
+        (item: any): item is LinkedInAwardStructured =>
+          item &&
+          typeof item.title === 'string' &&
+          typeof item.issuer === 'string'
+      );
+
+      if (!awardList.length) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            Structured awards data was not detected.
+          </div>
+        );
+      }
+
+      const safeIndex = Math.min(activeExperienceIndex, awardList.length - 1);
+      const activeAward = awardList[safeIndex];
+
       return (
         <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">🏆</span>
-              Optimized honors & awards entry
-            </h3>
-          </div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
+            <span className="mr-2">🏆</span>
+            Optimized honors & awards entry
+          </h3>
+
+          {awardList.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {awardList.map((award: LinkedInAwardStructured, index: number) => {
+                const isActive = index === safeIndex;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveExperienceIndex(index)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                        : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                    }`}
+                    title={award.title || `Entry ${index + 1}`}
+                  >
+                    {award.title ? award.title.substring(0, 30) + (award.title.length > 30 ? '...' : '') : `Entry ${index + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <TabButtons />
 
@@ -668,29 +901,29 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             <>
               <StructuredField
                 label="Award Title"
-                value={awardData.title}
+                value={activeAward.title}
                 maxLength={100}
                 icon="🏅"
               />
 
               <StructuredField
                 label="Issuer"
-                value={awardData.issuer}
+                value={activeAward.issuer}
                 maxLength={100}
                 icon="🏢"
               />
 
-              {awardData.date && (
+              {activeAward.date && (
                 <StructuredField
                   label="Award Date"
-                  value={awardData.date}
+                  value={activeAward.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
                 label="Recognition Summary"
-                value={awardData.description}
+                value={activeAward.description}
                 maxLength={300}
                 icon="✨"
                 multiline
@@ -699,21 +932,68 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           )}
 
           {activeTab === 'suggestions' && (
-            <SuggestionsView suggestions={awardData.suggestions || []} />
+            <SuggestionsView suggestions={activeAward.suggestions || []} />
           )}
         </div>
       );
+    }
 
-    case 'volunteer-experience':
-      const volunteerData = data as LinkedInVolunteerStructured;
+    case 'volunteer-experience': {
+      const volunteerCandidates = Array.isArray((data as any)?.volunteerExperiences)
+        ? (data as any).volunteerExperiences
+        : Array.isArray(data)
+        ? data
+        : data
+        ? [data]
+        : [];
+
+      const volunteerList = volunteerCandidates.filter(
+        (item: any): item is LinkedInVolunteerStructured =>
+          item &&
+          typeof item.role === 'string' &&
+          typeof item.organization === 'string'
+      );
+
+      if (!volunteerList.length) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+            Structured volunteer data was not detected.
+          </div>
+        );
+      }
+
+      const safeIndex = Math.min(activeExperienceIndex, volunteerList.length - 1);
+      const activeVolunteer = volunteerList[safeIndex];
+
       return (
         <div className="space-y-3">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center">
-              <span className="mr-2">🤝</span>
-              Optimized volunteer experience
-            </h3>
-          </div>
+          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
+            <span className="mr-2">🤝</span>
+            Optimized volunteer experience
+          </h3>
+
+          {volunteerList.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {volunteerList.map((volunteer: LinkedInVolunteerStructured, index: number) => {
+                const isActive = index === safeIndex;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setActiveExperienceIndex(index)}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
+                      isActive
+                        ? 'bg-[#0A66C2] text-white border-[#0A66C2] shadow-sm'
+                        : 'bg-white text-[#0A66C2] border-[#0A66C2] hover:bg-[#EAF3FF]'
+                    }`}
+                    title={volunteer.role || `Entry ${index + 1}`}
+                  >
+                    {volunteer.role ? volunteer.role.substring(0, 30) + (volunteer.role.length > 30 ? '...' : '') : `Entry ${index + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           <TabButtons />
 
@@ -721,37 +1001,37 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
             <>
               <StructuredField
                 label="Volunteer Role"
-                value={volunteerData.role}
+                value={activeVolunteer.role}
                 maxLength={100}
                 icon="👤"
               />
 
               <StructuredField
                 label="Organization"
-                value={volunteerData.organization}
+                value={activeVolunteer.organization}
                 maxLength={100}
                 icon="🏢"
               />
 
-              {volunteerData.cause && (
+              {activeVolunteer.cause && (
                 <StructuredField
                   label="Cause"
-                  value={volunteerData.cause}
+                  value={activeVolunteer.cause}
                   icon="💚"
                 />
               )}
 
-              {volunteerData.date && (
+              {activeVolunteer.date && (
                 <StructuredField
                   label="Date"
-                  value={volunteerData.date}
+                  value={activeVolunteer.date}
                   icon="📅"
                 />
               )}
 
               <StructuredField
                 label="Experience Description"
-                value={volunteerData.description}
+                value={activeVolunteer.description}
                 maxLength={600}
                 icon="📄"
                 multiline
@@ -760,10 +1040,11 @@ export const OptimizationResult: React.FC<OptimizationResultProps> = ({
           )}
 
           {activeTab === 'suggestions' && (
-            <SuggestionsView suggestions={volunteerData.suggestions || []} />
+            <SuggestionsView suggestions={activeVolunteer.suggestions || []} />
           )}
         </div>
       );
+    }
 
     default:
       return (

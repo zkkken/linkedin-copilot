@@ -173,9 +173,14 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 }`;
 
     case 'education':
-      return `You are a LinkedIn Education Optimization Specialist with employer-branding insight. Rewrite this education entry to highlight academic strength and career relevance.
+      return `You are a LinkedIn Education Optimization Specialist. The content below may contain ONE or MULTIPLE education entries. Optimize each entry to highlight academic strength and career relevance.
 
-### Objectives
+IMPORTANT:
+- If you detect MULTIPLE education entries in the content, return an array format: {"educations": [{...}, {...}]}
+- If only ONE education entry is found, return single object format: {single education object}
+- Detect education boundaries by looking for: new school names, different degrees, or clear separation
+
+### Objectives for each entry
 - Emphasize academic excellence, applied projects, and honors.
 - Demonstrate how the education supports professional competencies.
 - Keep highlights concise (no more than 600 characters).
@@ -197,14 +202,33 @@ ${content}
 ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
+If MULTIPLE education entries detected:
 {
-  "suggestions": [
+  "educations": [
     {
-      "type": "Optimization focus (e.g., Relevance emphasis, Achievement clarity)",
-      "reason": "Why this change helps recruiters connect the dots",
-      "improvement": "What was highlighted or refined"
+      "suggestions": [...],
+      "degree": "Master of Science",
+      "school": "Stanford University",
+      "fieldOfStudy": "Computer Science",
+      "grade": "3.9/4.0",
+      "highlights": "• Led research team on AI project\\n• Published 2 papers",
+      "activities": "CS Club President"
+    },
+    {
+      "suggestions": [...],
+      "degree": "Bachelor of Engineering",
+      "school": "MIT",
+      "fieldOfStudy": "Electrical Engineering",
+      "grade": "3.8/4.0",
+      "highlights": "• Dean's List all semesters\\n• Won hackathon",
+      "activities": "IEEE Member"
     }
-  ],
+  ]
+}
+
+If SINGLE education entry detected:
+{
+  "suggestions": [...],
   "degree": "Degree name",
   "school": "Institution name",
   "fieldOfStudy": "Field of study (optional)",
@@ -249,9 +273,14 @@ OUTPUT FORMAT - Return ONLY valid JSON, no other text:
 }`;
 
     case 'projects':
-      return `You are a LinkedIn projects expert. Optimize this project description using the STAR method to showcase impact.
+      return `You are a LinkedIn projects expert. The content below may contain ONE or MULTIPLE projects. Optimize each project using the STAR method.
 
-STRICT RULES:
+IMPORTANT:
+- If you detect MULTIPLE projects in the content, return an array format: {"projects": [{...}, {...}]}
+- If only ONE project is found, return single object format: {single project object}
+- Detect project boundaries by looking for: new project titles, dates, or clear separation between projects
+
+STRICT RULES for each project:
 1. Name: Project title (max 100 chars)
 2. Role: Your role in the project (optional but recommended)
 3. Date: Project timeframe (optional)
@@ -269,14 +298,31 @@ ${content}
 ${jobContext}
 
 OUTPUT FORMAT - Return ONLY valid JSON, no other text:
+If MULTIPLE projects detected:
 {
-  "suggestions": [
+  "projects": [
     {
-      "type": "Optimization type (e.g., Applied STAR method, Quantified impact)",
-      "reason": "Why this change improves project presentation",
-      "improvement": "What was improved"
+      "suggestions": [...],
+      "name": "Project 1 Name",
+      "role": "Your Role",
+      "date": "Jan 2023 - Jun 2023",
+      "description": "Project 1 description with STAR method",
+      "technologies": ["Tech1", "Tech2"]
+    },
+    {
+      "suggestions": [...],
+      "name": "Project 2 Name",
+      "role": "Your Role",
+      "date": "Jul 2023 - Dec 2023",
+      "description": "Project 2 description with STAR method",
+      "technologies": ["Tech3", "Tech4"]
     }
-  ],
+  ]
+}
+
+If SINGLE project detected:
+{
+  "suggestions": [...],
   "name": "E-commerce Platform Modernization",
   "role": "Lead Developer",
   "date": "Jan 2023 - Jun 2023",
@@ -470,13 +516,18 @@ export const parseStructuredResponse = (
         break;
 
       case 'experience': {
+        // AI might return: experiences, optimized_experiences, or direct array
         const candidateArray = Array.isArray(parsed?.experiences)
           ? parsed.experiences
+          : Array.isArray(parsed?.optimized_experiences)
+          ? parsed.optimized_experiences
           : Array.isArray(parsed)
           ? parsed
           : parsed && parsed.title
           ? [parsed]
           : [];
+
+        console.log('[Parser] Experience candidates:', candidateArray.length, 'entries found');
 
         if (!candidateArray || candidateArray.length === 0) {
           throw new Error('Invalid experience structure');
@@ -524,98 +575,295 @@ export const parseStructuredResponse = (
         }
         break;
 
-      case 'education':
-        if (!parsed.degree || !parsed.school || !parsed.highlights) {
-          throw new Error('Invalid education structure');
-        }
-        // Enforce character limits
-        if (parsed.degree.length > 100) {
-          parsed.degree = parsed.degree.substring(0, 97) + '...';
-        }
-        if (parsed.school.length > 100) {
-          parsed.school = parsed.school.substring(0, 97) + '...';
-        }
-        if (parsed.highlights.length > 600) {
-          parsed.highlights = parsed.highlights.substring(0, 597) + '...';
-        }
-        break;
+      case 'education': {
+        // Handle both single education and array of educations
+        const candidateArray = Array.isArray(parsed?.educations)
+          ? parsed.educations
+          : Array.isArray(parsed)
+          ? parsed
+          : parsed && parsed.degree
+          ? [parsed]
+          : [];
 
-      case 'licenses-certifications':
-        if (!parsed.name || !parsed.organization || !parsed.description) {
-          throw new Error('Invalid certification structure');
+        if (!candidateArray || candidateArray.length === 0) {
+          throw new Error('Invalid education structure: no education entries found');
         }
-        // Enforce character limits
-        if (parsed.name.length > 100) {
-          parsed.name = parsed.name.substring(0, 97) + '...';
-        }
-        if (parsed.organization.length > 100) {
-          parsed.organization = parsed.organization.substring(0, 97) + '...';
-        }
-        if (parsed.description.length > 200) {
-          parsed.description = parsed.description.substring(0, 197) + '...';
-        }
-        break;
 
-      case 'projects':
-        if (!parsed.name || !parsed.description) {
-          throw new Error('Invalid project structure');
-        }
-        // Enforce character limits
-        if (parsed.name.length > 100) {
-          parsed.name = parsed.name.substring(0, 97) + '...';
-        }
-        if (parsed.description.length > 1000) {
-          parsed.description = parsed.description.substring(0, 997) + '...';
-        }
-        break;
+        const sanitizedEducations = candidateArray
+          .filter(
+            (item: any) =>
+              item && typeof item.degree === 'string' && typeof item.school === 'string'
+          )
+          .map((item: any) => {
+            const education = { ...item };
+            // Enforce character limits
+            if (education.degree && education.degree.length > 100) {
+              education.degree = education.degree.substring(0, 97) + '...';
+            }
+            if (education.school && education.school.length > 100) {
+              education.school = education.school.substring(0, 97) + '...';
+            }
+            // Make highlights optional with default
+            if (!education.highlights) {
+              education.highlights = '';
+            } else if (education.highlights.length > 600) {
+              education.highlights = education.highlights.substring(0, 597) + '...';
+            }
+            // Optional fields
+            if (!education.fieldOfStudy) education.fieldOfStudy = '';
+            if (!education.grade) education.grade = '';
+            if (!education.activities) education.activities = '';
+            return education;
+          });
 
-      case 'publications':
-        if (!parsed.title || !parsed.publisher || !parsed.description) {
-          throw new Error('Invalid publication structure');
+        if (!sanitizedEducations.length) {
+          throw new Error('Invalid education structure: no valid education entries after filtering');
         }
-        // Enforce character limits
-        if (parsed.title.length > 100) {
-          parsed.title = parsed.title.substring(0, 97) + '...';
-        }
-        if (parsed.publisher.length > 100) {
-          parsed.publisher = parsed.publisher.substring(0, 97) + '...';
-        }
-        if (parsed.description.length > 500) {
-          parsed.description = parsed.description.substring(0, 497) + '...';
-        }
-        break;
 
-      case 'honors-awards':
-        if (!parsed.title || !parsed.issuer || !parsed.description) {
-          throw new Error('Invalid award structure');
-        }
-        // Enforce character limits
-        if (parsed.title.length > 100) {
-          parsed.title = parsed.title.substring(0, 97) + '...';
-        }
-        if (parsed.issuer.length > 100) {
-          parsed.issuer = parsed.issuer.substring(0, 97) + '...';
-        }
-        if (parsed.description.length > 300) {
-          parsed.description = parsed.description.substring(0, 297) + '...';
-        }
+        parsed = sanitizedEducations.length === 1 ? sanitizedEducations[0] : { educations: sanitizedEducations };
         break;
+      }
 
-      case 'volunteer-experience':
-        if (!parsed.role || !parsed.organization || !parsed.description) {
-          throw new Error('Invalid volunteer structure');
+      case 'licenses-certifications': {
+        // Handle both single certification and array of certifications
+        const candidateArray = Array.isArray(parsed?.certifications)
+          ? parsed.certifications
+          : Array.isArray(parsed)
+          ? parsed
+          : parsed && parsed.name
+          ? [parsed]
+          : [];
+
+        if (!candidateArray || candidateArray.length === 0) {
+          throw new Error('Invalid certification structure: no certifications found');
         }
-        // Enforce character limits
-        if (parsed.role.length > 100) {
-          parsed.role = parsed.role.substring(0, 97) + '...';
+
+        const sanitizedCertifications = candidateArray
+          .filter(
+            (item: any) =>
+              item && typeof item.name === 'string' && typeof item.organization === 'string'
+          )
+          .map((item: any) => {
+            const cert = { ...item };
+            // Enforce character limits
+            if (cert.name && cert.name.length > 100) {
+              cert.name = cert.name.substring(0, 97) + '...';
+            }
+            if (cert.organization && cert.organization.length > 100) {
+              cert.organization = cert.organization.substring(0, 97) + '...';
+            }
+            // Make description optional with default
+            if (!cert.description) {
+              cert.description = '';
+            } else if (cert.description.length > 200) {
+              cert.description = cert.description.substring(0, 197) + '...';
+            }
+            // Optional fields
+            if (!cert.issueDate) cert.issueDate = '';
+            if (!cert.credentialId) cert.credentialId = '';
+            return cert;
+          });
+
+        if (!sanitizedCertifications.length) {
+          throw new Error('Invalid certification structure: no valid certifications after filtering');
         }
-        if (parsed.organization.length > 100) {
-          parsed.organization = parsed.organization.substring(0, 97) + '...';
-        }
-        if (parsed.description.length > 600) {
-          parsed.description = parsed.description.substring(0, 597) + '...';
-        }
+
+        parsed = sanitizedCertifications.length === 1 ? sanitizedCertifications[0] : { certifications: sanitizedCertifications };
         break;
+      }
+
+      case 'projects': {
+        // AI might return: projects, optimized_projects, or direct array
+        const candidateArray = Array.isArray(parsed?.projects)
+          ? parsed.projects
+          : Array.isArray(parsed?.optimized_projects)
+          ? parsed.optimized_projects
+          : Array.isArray(parsed)
+          ? parsed
+          : parsed && parsed.name
+          ? [parsed]
+          : [];
+
+        console.log('[Parser] Projects candidates:', candidateArray.length, 'entries found');
+
+        if (!candidateArray || candidateArray.length === 0) {
+          throw new Error('Invalid project structure: no projects found');
+        }
+
+        const sanitizedProjects = candidateArray
+          .filter(
+            (item: any) =>
+              item && typeof item.name === 'string'
+          )
+          .map((item: any) => {
+            const project = { ...item };
+            // Enforce character limits
+            if (project.name && project.name.length > 100) {
+              project.name = project.name.substring(0, 97) + '...';
+            }
+            // Make description optional with default
+            if (!project.description) {
+              project.description = '';
+            } else if (project.description && project.description.length > 1000) {
+              project.description = project.description.substring(0, 997) + '...';
+            }
+            // Optional fields with defaults
+            if (!project.role) project.role = '';
+            if (!project.date) project.date = '';
+            if (!project.technologies) project.technologies = [];
+            return project;
+          });
+
+        if (!sanitizedProjects.length) {
+          throw new Error('Invalid project structure: no valid projects after filtering');
+        }
+
+        parsed = sanitizedProjects.length === 1 ? sanitizedProjects[0] : { projects: sanitizedProjects };
+        break;
+      }
+
+      case 'publications': {
+        // Handle both single publication and array of publications
+        const candidateArray = Array.isArray(parsed?.publications)
+          ? parsed.publications
+          : Array.isArray(parsed)
+          ? parsed
+          : parsed && parsed.title
+          ? [parsed]
+          : [];
+
+        if (!candidateArray || candidateArray.length === 0) {
+          throw new Error('Invalid publication structure: no publications found');
+        }
+
+        const sanitizedPublications = candidateArray
+          .filter(
+            (item: any) =>
+              item && typeof item.title === 'string' && typeof item.publisher === 'string'
+          )
+          .map((item: any) => {
+            const publication = { ...item };
+            // Enforce character limits
+            if (publication.title && publication.title.length > 100) {
+              publication.title = publication.title.substring(0, 97) + '...';
+            }
+            if (publication.publisher && publication.publisher.length > 100) {
+              publication.publisher = publication.publisher.substring(0, 97) + '...';
+            }
+            // Make description optional with default
+            if (!publication.description) {
+              publication.description = '';
+            } else if (publication.description.length > 500) {
+              publication.description = publication.description.substring(0, 497) + '...';
+            }
+            // Optional fields
+            if (!publication.date) publication.date = '';
+            if (!publication.url) publication.url = '';
+            return publication;
+          });
+
+        if (!sanitizedPublications.length) {
+          throw new Error('Invalid publication structure: no valid publications after filtering');
+        }
+
+        parsed = sanitizedPublications.length === 1 ? sanitizedPublications[0] : { publications: sanitizedPublications };
+        break;
+      }
+
+      case 'honors-awards': {
+        // Handle both single award and array of awards
+        const candidateArray = Array.isArray(parsed?.awards)
+          ? parsed.awards
+          : Array.isArray(parsed)
+          ? parsed
+          : parsed && parsed.title
+          ? [parsed]
+          : [];
+
+        if (!candidateArray || candidateArray.length === 0) {
+          throw new Error('Invalid award structure: no awards found');
+        }
+
+        const sanitizedAwards = candidateArray
+          .filter(
+            (item: any) =>
+              item && typeof item.title === 'string' && typeof item.issuer === 'string'
+          )
+          .map((item: any) => {
+            const award = { ...item };
+            // Enforce character limits
+            if (award.title && award.title.length > 100) {
+              award.title = award.title.substring(0, 97) + '...';
+            }
+            if (award.issuer && award.issuer.length > 100) {
+              award.issuer = award.issuer.substring(0, 97) + '...';
+            }
+            // Make description optional with default
+            if (!award.description) {
+              award.description = '';
+            } else if (award.description.length > 300) {
+              award.description = award.description.substring(0, 297) + '...';
+            }
+            // Optional fields
+            if (!award.date) award.date = '';
+            return award;
+          });
+
+        if (!sanitizedAwards.length) {
+          throw new Error('Invalid award structure: no valid awards after filtering');
+        }
+
+        parsed = sanitizedAwards.length === 1 ? sanitizedAwards[0] : { awards: sanitizedAwards };
+        break;
+      }
+
+      case 'volunteer-experience': {
+        // Handle both single volunteer entry and array of volunteer experiences
+        const candidateArray = Array.isArray(parsed?.volunteerExperiences)
+          ? parsed.volunteerExperiences
+          : Array.isArray(parsed)
+          ? parsed
+          : parsed && parsed.role
+          ? [parsed]
+          : [];
+
+        if (!candidateArray || candidateArray.length === 0) {
+          throw new Error('Invalid volunteer structure: no volunteer experiences found');
+        }
+
+        const sanitizedVolunteer = candidateArray
+          .filter(
+            (item: any) =>
+              item && typeof item.role === 'string' && typeof item.organization === 'string'
+          )
+          .map((item: any) => {
+            const volunteer = { ...item };
+            // Enforce character limits
+            if (volunteer.role && volunteer.role.length > 100) {
+              volunteer.role = volunteer.role.substring(0, 97) + '...';
+            }
+            if (volunteer.organization && volunteer.organization.length > 100) {
+              volunteer.organization = volunteer.organization.substring(0, 97) + '...';
+            }
+            // Make description optional with default
+            if (!volunteer.description) {
+              volunteer.description = '';
+            } else if (volunteer.description.length > 600) {
+              volunteer.description = volunteer.description.substring(0, 597) + '...';
+            }
+            // Optional fields
+            if (!volunteer.cause) volunteer.cause = '';
+            if (!volunteer.date) volunteer.date = '';
+            return volunteer;
+          });
+
+        if (!sanitizedVolunteer.length) {
+          throw new Error('Invalid volunteer structure: no valid volunteer experiences after filtering');
+        }
+
+        parsed = sanitizedVolunteer.length === 1 ? sanitizedVolunteer[0] : { volunteerExperiences: sanitizedVolunteer };
+        break;
+      }
     }
 
     // 🔧 Ensure suggestions array exists for backward compatibility

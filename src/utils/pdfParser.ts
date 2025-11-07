@@ -56,13 +56,38 @@ export async function parsePDF(
     const totalPages = pdf.numPages;
     let fullText = '';
 
+    console.log(`[PDF Parser] Starting extraction from ${totalPages} page(s)`);
+
     for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
       const page = await pdf.getPage(pageNum);
       const textContent = await page.getTextContent();
 
-      const pageText = textContent.items
-        .map((item: any) => ('str' in item ? item.str : ''))
-        .join(' ');
+      console.log(`[PDF Parser] Page ${pageNum}: ${textContent.items.length} text items`);
+
+      // Reconstruct text with proper line breaks based on Y coordinates
+      let pageText = '';
+      let lastY: number | null = null;
+      const LINE_HEIGHT_THRESHOLD = 5; // Minimum Y difference to consider a new line
+
+      for (const item of textContent.items) {
+        if (!('str' in item)) continue;
+
+        const currentY = item.transform[5]; // Y coordinate
+
+        // Detect new line: significant Y coordinate change
+        if (lastY !== null && Math.abs(currentY - lastY) > LINE_HEIGHT_THRESHOLD) {
+          pageText += '\n';
+        } else if (pageText.length > 0 && !pageText.endsWith('\n')) {
+          // Same line, add space
+          pageText += ' ';
+        }
+
+        pageText += item.str;
+        lastY = currentY;
+      }
+
+      console.log(`[PDF Parser] Page ${pageNum} text length: ${pageText.length} chars`);
+      console.log(`[PDF Parser] Page ${pageNum} first 3 lines:\n${pageText.split('\n').slice(0, 3).join('\n')}`);
 
       fullText += pageText + '\n\n';
 
@@ -75,8 +100,13 @@ export async function parsePDF(
       }
     }
 
+    const trimmedText = fullText.trim();
+    const lineCount = trimmedText.split('\n').length;
+    console.log(`[PDF Parser] ✅ Extraction complete: ${trimmedText.length} total characters, ${lineCount} lines`);
+    console.log(`[PDF Parser] Full text preview (first 500 chars):\n${trimmedText.substring(0, 500)}`);
+
     return {
-      text: fullText.trim(),
+      text: trimmedText,
       pageCount: totalPages,
       fileName: file.name,
     };

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { AI_PROVIDERS, getProvider } from '../providers/aiProviders';
-import type { AIProvider, AIProviderConfig } from '../providers/types';
+import type { AIProviderConfig } from '../providers/types';
 
 interface SettingsPageProps {
   onClose: () => void;
